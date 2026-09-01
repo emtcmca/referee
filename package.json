@@ -1,0 +1,33 @@
+{
+  "name": "referee",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Referee — a double-blind academic peer-review room where the page, not a prompt, is the boundary between a browser AI agent and untrusted manuscript text. Built on WebMCP. Static site, vanilla ES modules, no bundler, no backend.",
+  "license": "Apache-2.0",
+  "author": "Eric Tetzlaff",
+  "homepage": "[FILL: deployed production URL]",
+  "repository": {
+    "type": "git",
+    "url": "[FILL: repo URL]"
+  },
+  "bugs": {
+    "url": "[FILL: repo URL]/issues"
+  },
+  "keywords": [
+    "webmcp",
+    "model-context",
+    "peer-review",
+    "prompt-injection",
+    "agent-safety"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node scripts/check-blinding.mjs",
+    "selftest": "node scripts/selftest-blinding.mjs",
+    "test": "node scripts/run-tests.mjs",
+    "acceptance": "node scripts/check-acceptance.mjs"
+  }
+}

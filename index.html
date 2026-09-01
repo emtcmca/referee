@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en" data-webmcp="absent">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Referee — double-blind peer review with a browser agent</title>
+  <meta name="description" content="A double-blind peer-review room where the page is the boundary between a browser AI agent and untrusted manuscript text. All manuscripts are fictional.">
+  <meta name="color-scheme" content="light">
+  <link rel="stylesheet" href="./src/ui/theme.css">
+  <!-- SHELL. The interface lane owns everything inside the mount points.
+       data-webmcp is authored "absent" on <html> deliberately: with no attribute
+       the page would claim an agent it does not have, for one frame, on camera. -->
+</head>
+<body>
+
+  <noscript>
+    <h1>Referee</h1>
+    <p>Referee is a client-side application and requires JavaScript. Nothing runs on a server;
+       enabling JavaScript for this page is the whole install.</p>
+  </noscript>
+
+  <!-- WebMCP-absent state. Unhidden by src/main.js when neither document.modelContext nor
+       navigator.modelContext is present. Plain text on purpose. It is the screen-reader
+       fallback for the rendered band in #mount-header, which carries the same fact
+       visually; it is styled sr-only so the two do not read as two separate reports. -->
+  <p id="webmcp-absent" role="status" hidden>
+    This browser does not expose a WebMCP model context, so the agent-facing tools are not
+    registered. Referee still runs for a human reviewer. To use the agent side, open this page
+    in the ChatGPT desktop in-app browser, or in Chrome 149+ with
+    <code>chrome://flags/#enable-webmcp-testing</code> enabled. WebMCP is an origin-trial-stage
+    proposal and its API is subject to change.
+  </p>
+
+  <!-- ===================== MOUNT POINTS ===================== -->
+  <!-- Owned by the interface lane. Do not add markup here; render into them. -->
+
+  <div class="app">
+
+    <header id="mount-header"></header>
+
+    <main id="mount-main">
+      <section id="mount-queue" aria-label="Manuscript queue"></section>
+
+      <div class="reading">
+        <div class="reading-head" data-render="manuscript-head"></div>
+        <div id="desk-body">
+          <section id="mount-manuscript" aria-label="Manuscript"></section>
+          <section id="mount-findings" aria-label="Findings"></section>
+          <aside id="mount-ledger" aria-label="Append-only ledger"></aside>
+          <div data-render="tools-and-honesty"></div>
+        </div>
+        <section id="mount-recommendation" aria-label="Recommendation"></section>
+      </div>
+    </main>
+
+    <footer id="mount-footer">
+      <!-- Tool-registration state. src/main.js sets the text only after all seven
+           registrations have resolved, so the indicator can be trusted. -->
+      <p id="mount-tool-status" role="status" aria-live="polite"></p>
+    </footer>
+
+  </div>
+
+  <!-- Dialogs. Closed dialogs are out of flow, so this section adds no layout. -->
+  <section id="mount-split-screen" aria-label="What the page received vs. what the agent received"></section>
+
+  <!-- ===================== END MOUNT POINTS ===================== -->
+
+  <!-- The interface lane boots FIRST: it installs the corpus so that main.js's
+       loadState() computes its seed hash against the shipped text rather than the
+       stub. Both modules read state through getState(), so neither caches it. -->
+  <script type="module" src="./src/ui/render/index.js"></script>
+  <script type="module" src="./src/main.js"></script>
+
+</body>
+</html>

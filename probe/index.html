@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Referee — WebMCP Environment Probe</title>
+<style>
+  :root{
+    --paper:#FBF9F4; --ink:#14140F; --mute:#6B6B60; --rule:#E2DCCF;
+    --ok:#1F6B4A; --bad:#A3231E; --wait:#8A5B00; --link:#1B4D8F;
+    --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", "Consolas", monospace;
+    --text: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--ui);
+       font-size:15px;line-height:1.55;padding:40px 32px 80px}
+  main{max-width:820px;margin:0 auto}
+  h1{font-family:var(--text);font-size:30px;font-weight:400;letter-spacing:-.01em;margin:0 0 4px}
+  .sub{color:var(--mute);font-size:13px;margin:0 0 28px}
+  h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);
+     font-weight:600;margin:34px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  td{padding:9px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
+  td:first-child{width:26px;color:var(--mute);font-variant-numeric:tabular-nums}
+  td:last-child{width:96px;text-align:right;font-family:var(--mono);font-size:12px}
+  .check-name{font-weight:600}
+  .check-why{color:var(--mute);font-size:13px;display:block;margin-top:2px}
+  .s-pass{color:var(--ok)} .s-fail{color:var(--bad)} .s-wait{color:var(--wait)}
+  .critical td{background:#FDF6E8}
+  .critical .check-name::after{content:" — GO / NO-GO";color:var(--bad);font-size:11px;
+    letter-spacing:.06em;font-weight:600}
+  pre{font-family:var(--mono);font-size:12px;line-height:1.5;background:#F3EFE6;
+      border:1px solid var(--rule);padding:14px;overflow-x:auto;white-space:pre-wrap;
+      word-break:break-word}
+  button{font:inherit;font-size:13px;padding:7px 14px;background:var(--ink);color:var(--paper);
+         border:0;cursor:pointer}
+  button:hover{background:#000}
+  .banner{padding:14px 16px;border-left:3px solid var(--wait);background:#FDF6E8;
+          font-size:14px;margin:0 0 24px}
+  .banner.absent{border-color:var(--bad);background:#FBEDEC}
+  code{font-family:var(--mono);font-size:.92em}
+</style>
+</head>
+<body>
+<main>
+  <h1>WebMCP Environment Probe</h1>
+  <p class="sub">Referee &middot; Task&nbsp;0. Confirms the API behaves the same in the ChatGPT
+  desktop in-app browser and in Chrome&nbsp;149+ with
+  <code>chrome://flags/#enable-webmcp-testing</code>.</p>
+
+  <div class="banner" id="banner">Checking for WebMCP&hellip;</div>
+
+  <h2>Automatic checks</h2>
+  <table id="auto"></table>
+
+  <h2>Agent-driven checks</h2>
+  <p class="sub" style="margin:-4px 0 12px">Ask your agent, in this order:
+  <em>&ldquo;List the tools on this page, then call probe_echo with message &lsquo;hello&rsquo;,
+  then call probe_always_refuses, then call probe_untrusted.&rdquo;</em></p>
+  <table id="agent"></table>
+
+  <h2>Result — paste into docs/environment-check.md</h2>
+  <pre id="report">Waiting for checks&hellip;</pre>
+  <button id="copy">Copy report</button>
+</main>
+
+<script>
+/* ---------------------------------------------------------------------------
+   Task 0 probe. Six checks, from scope/00-api-reality.md section 3.
+
+   Check 5 is the one that can kill the project silently: if a returned
+   {ok:false} refusal does not reach the agent as a usable RESULT, Referee's
+   entire premise fails, because every enforcement mechanism it has is a
+   returned refusal. It is tested with a tool that does nothing else.
+--------------------------------------------------------------------------- */
+
+const CHECKS = [
+  ['1','<code>document.modelContext</code> is present',
+       'navigator.modelContext is deprecated as of Chrome 150; we prefer document and fall back.',0],
+  ['2','<code>await registerTool()</code> resolves without throwing',
+       'Registration is async and takes (definition, options). It must not reject.',0],
+  ['6','<code>annotations</code> accepted without error',
+       'readOnlyHint / untrustedContentHint. If rejected, we drop annotations rather than fail.',0],
+  ['3','The agent discovers and calls a tool',
+       'Proves the registry is reachable from the agent side, not just from the page.',1],
+  ['4','A returned JSON string arrives intact',
+       'Every handler returns JSON.stringify(payload). A string always survives the boundary.',1],
+  ['5','A returned {ok:false} refusal reaches the agent as a RESULT',
+       'Not swallowed, not surfaced as an error. Our refusals are the product.',1]
+];
+
+const state = {};
+const setStatus = (id, val) => { state[id] = val; paint(); };
+
+function paint(){
+  for (const scope of [0,1]) {
+    const rows = CHECKS.filter(c => c[3] === scope).map(([id,name,why]) => {
+      const v = state[id] || 'PENDING';
+      const cls = v === 'PASS' ? 's-pass' : v === 'FAIL' ? 's-fail' : 's-wait';
+      const crit = id === '5' ? ' class="critical"' : '';
+      return `<tr${crit}><td>${id}</td><td><span class="check-name">${name}</span>
+              <span class="check-why">${why}</span></td>
+              <td class="${cls}">${v}</td></tr>`;
+    }).join('');
+    document.getElementById(scope ? 'agent' : 'auto').innerHTML = rows;
+  }
+  const lines = CHECKS.map(([id,name]) =>
+    `  ${id}. [${(state[id]||'PENDING').padEnd(7)}] ${name.replace(/<[^>]+>/g,'')}`);
+  document.getElementById('report').textContent =
+`REFEREE — WebMCP environment check
+date:     ${new Date().toISOString()}
+agent:    ${navigator.userAgent}
+surface:  ${state._surface || 'none'}
+url:      ${location.href}
+
+${lines.join('\n')}
+
+check 5 is the go/no-go. FAIL in either browser means stop, do not improvise.`;
+}
+
+/* One controller so the whole set can be torn down and re-registered cleanly. */
+const registry = new AbortController();
+const reply = payload => JSON.stringify(payload);
+
+async function main(){
+  const mc = document.modelContext ?? navigator.modelContext ?? null;
+  const banner = document.getElementById('banner');
+
+  if (!mc) {
+    setStatus('1','FAIL');
+    banner.className = 'banner absent';
+    banner.innerHTML = '<strong>WebMCP is not available in this browser.</strong> ' +
+      'Open this page in the ChatGPT desktop app’s in-app browser, or in Chrome 149+ ' +
+      'with <code>chrome://flags/#enable-webmcp-testing</code> enabled and the browser restarted.';
+    return;
+  }
+  state._surface = document.modelContext ? 'document.modelContext' : 'navigator.modelContext (deprecated)';
+  setStatus('1','PASS');
+
+  const def = (name, description, extra) => ({
+    name, description,
+    inputSchema: { type:'object', properties:
+      name === 'probe_echo' ? { message:{type:'string'} } : {},
+      required: name === 'probe_echo' ? ['message'] : [] },
+    ...extra
+  });
+
+  /* Check 5's instrument. It exists only to refuse, and it never throws. */
+  const tools = [
+    def('probe_echo','Echo a message back. Confirms a returned JSON string arrives intact.',{
+      annotations:{ readOnlyHint:true, untrustedContentHint:false },
+      execute: async (inputs) => {
+        setStatus('3','PASS');
+        setStatus('4','PASS');
+        return reply({ ok:true, echoed:String(inputs?.message ?? ''), marker:'REFEREE_PROBE_OK' });
+      }
+    }),
+    def('probe_always_refuses',
+        'Always refuses. Call this to confirm a policy refusal reaches you as a usable result ' +
+        'rather than as an error. Expect {ok:false, code:"PROBE_REFUSAL"}.',{
+      annotations:{ readOnlyHint:true, untrustedContentHint:false },
+      execute: async () => {
+        setStatus('3','PASS');
+        setStatus('5','PASS');
+        return reply({ ok:false, code:'PROBE_REFUSAL',
+          message:'This tool always refuses. If you can read this, refusals survive the boundary.',
+          retry_hint:'No retry is possible. Report that you received a structured refusal.' });
+      }
+    }),
+    def('probe_untrusted','Returns text declared as untrusted content.',{
+      annotations:{ readOnlyHint:true, untrustedContentHint:true },
+      execute: async () => reply({ ok:true, note:'declared untrustedContentHint' })
+    })
+  ];
+
+  try {
+    for (const t of tools) await mc.registerTool(t, { signal: registry.signal });
+    setStatus('2','PASS'); setStatus('6','PASS');
+  } catch (e) {
+    setStatus('2','FAIL');
+    /* Annotations are the likeliest rejection. Retry without them before giving up. */
+    try {
+      for (const t of tools) {
+        const { annotations, ...bare } = t;
+        await mc.registerTool(bare, { signal: registry.signal });
+      }
+      setStatus('2','PASS'); setStatus('6','FAIL');
+    } catch (e2) {
+      setStatus('6','FAIL');
+      banner.className = 'banner absent';
+      banner.textContent = 'registerTool threw: ' + (e2 && e2.message ? e2.message : String(e2));
+      return;
+    }
+  }
+
+  banner.innerHTML = '<strong>Tools registered.</strong> Three tools are live on this page. ' +
+    'Now run the agent-driven checks above.';
+  paint();
+}
+
+document.getElementById('copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(document.getElementById('report').textContent);
+        document.getElementById('copy').textContent = 'Copied'; } catch { /* manual select */ }
+});
+
+paint();
+main();
+</script>
+</body>
+</html>

@@ -1,0 +1,802 @@
+/* ===========================================================================
+   DIRECTION A — THE READING ROOM
+   Warm, document-first, unhurried. Paper and ink; one vermilion accent carries
+   every state on the page. Typography is the whole design: a bookish serif for
+   the human sentence, a mono for the machine record beneath it.
+
+   THREE SURFACES, ONE MEANING EACH. Every ground here is one of three weights
+   of the same warm stock, and each weight means exactly one thing:
+     --paper       the desk and every heading  (masthead, slate, section head
+                   bands, the manuscript header, the pinned verdict bar)
+     --paper-read  THE SHEET, the lightest and calmest ground on the page --
+                   the manuscript prose sits here and nothing tints it
+     --paper-sunk  THE MACHINE REGISTER -- every machine line, the rubric
+                   well, the tool-name column, the status bar
+   So a fact is one object on two stocks, and a section announces itself by
+   the band its heading sits on. No borders, no radius, no shadow: the tone
+   carries it, and every band bleeds past the text into the gutter so it has
+   no vertical edge to be a card by.
+
+   pairs: --ink/--paper, --ink/--paper-read, --ink/--paper-sunk, --ink/--paper-lift,
+          --ink-2/--paper, --ink-2/--paper-read, --ink-2/--paper-sunk, --ink-2/--paper-lift,
+          --ink-3/--paper, --ink-3/--paper-read, --ink-3/--paper-sunk, --ink-3/--paper-lift,
+          --accent/--paper, --accent/--paper-read, --accent/--paper-sunk, --accent/--paper-lift,
+          --accent/--accent-wash, --ink/--accent-wash, --ink-2/--accent-wash,
+          --paper-read/--accent,
+          --rule-2/--paper ui, --rule-2/--paper-read ui, --rule-2/--paper-sunk ui,
+          --accent-line/--paper-read ui,
+          --accent/--paper ui, --accent/--paper-read ui, --accent/--paper-sunk ui
+   =========================================================================== */
+
+:root{
+  /* --- warm ground: three sheets of paper, not three greys ---------------- */
+  --paper:      #F2ECDF;   /* the desk — slate column, rail, chrome           */
+  --paper-read: #FBF7EF;   /* the sheet you read — manuscript column          */
+  --paper-sunk: #E9E1D0;   /* recessed: rubric well, rail head, stubs         */
+  --paper-lift: #F7F1E4;   /* the selected row, quietly warmer than the desk  */
+
+  /* --- ink ---------------------------------------------------------------- */
+  --ink:    #211E19;       /* the human sentence                              */
+  --ink-2:  #4A4238;       /* supporting prose, secondary sentences           */
+  --ink-3:  #6B6153;       /* THE MACHINE REGISTER — deliberately quieter     */
+
+  /* --- hairlines (no boxes; rules only where a rule means something) ------ */
+  --rule:   #DDD3BF;
+  --rule-2: #8A7A5C;      /* every real control border: 3.2:1 min on all 3 grounds */
+
+  /* --- the one accent. Every state on this page is this colour. ----------- */
+  --accent:      #973112;  /* refusal, human-only, the cut, integrity marks   */
+  --accent-line: #C87A55;  /* accent hairline, low-emphasis                   */
+  --accent-wash: #F4DDD1;  /* payload ground, human-only key ground           */
+  --backdrop:    rgba(33,30,25,.42);  /* modal veil, warm not neutral         */
+
+  /* --- type ---------------------------------------------------------------- */
+  /* every full-bleed band bleeds by exactly its container's gutter, so the
+     text left edge never moves. Each container sets its own. */
+  --gut: 14px;
+
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
+  --mono:  ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* --- motion (05-ui-spec §4.4) ------------------------------------------- */
+  --flip-dur:  260ms;
+  --flip-ease: cubic-bezier(.22,.61,.36,1);
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+[hidden]{ display:none !important; }
+/* the frame is fixed at 1280x800, so no element gets a margin it did not ask for */
+h1,h2,h3,p,ul,ol,figure,blockquote,table{ margin:0; }
+
+html,body{ height:100%; }
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--serif);
+  font-size:16px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;               /* no page scroll in either axis at 1280x800 */
+}
+
+/* the machine register: one class, used everywhere the contract is named */
+.m{
+  font-family:var(--mono);
+  font-size:11px;
+  line-height:1.5;
+  letter-spacing:.01em;
+  color:var(--ink-3);
+  font-variant-ligatures:none;
+}
+.m b{ font-weight:600; color:var(--ink-2); }
+.m-cap{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+}
+.said{ font-size:17px; line-height:1.42; color:var(--ink); margin:0; }
+.said-sm{ font-size:14.5px; line-height:1.45; color:var(--ink-2); margin:0; }
+
+/* the hatch is the texture of a deliberate absence — never a loading state */
+.hatch{
+  background-image:repeating-linear-gradient(135deg,
+    var(--rule-2) 0 1px, transparent 1px 4px);
+  background-color:var(--paper-sunk);
+}
+
+button{ font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; }
+:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:1px; }
+::selection{ background:var(--accent-wash); color:var(--ink); }
+
+/* ============================== FRAME ==================================== */
+.app{
+  height:100dvh;
+  display:grid;
+  grid-template-rows:46px minmax(0,1fr) 26px;
+}
+
+/* ---------------------------- masthead ----------------------------------- */
+#masthead{
+  display:flex; align-items:center; gap:14px;
+  padding:0 20px;
+  border-bottom:1px solid var(--rule);
+  background:var(--paper);
+}
+.wordmark{ font-size:19px; letter-spacing:.005em; }
+.wordmark b{ font-weight:600; }
+.wordmark span{ color:var(--ink-3); font-size:13.5px; }
+#fiction-banner{
+  margin-left:auto; margin-right:auto;
+  font-size:12.5px; color:var(--ink-2);
+  border-bottom:1px solid var(--accent-line);
+  padding-bottom:1px;
+}
+.mast-act{
+  font-size:13.5px; color:var(--ink-2);
+  border-bottom:1px solid var(--rule-2); padding-bottom:1px;
+}
+.mast-act:hover{ color:var(--accent); border-bottom-color:var(--accent); }
+
+/* ------------------------------ room ------------------------------------- */
+#room{
+  display:grid;
+  grid-template-columns:328px minmax(0,1fr);
+  min-height:0;
+}
+#room > *{ min-height:0; min-width:0; }
+
+/* ============================== SLATE ==================================== */
+.sr-only{ position:absolute; top:0; left:0; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+
+#slate{
+  position:relative;
+  border-right:1px solid var(--rule);
+  display:grid;
+  grid-template-columns:minmax(0,1fr);      /* or min-content blows the track */
+  grid-template-rows:auto minmax(0,1fr);
+  background:var(--paper);
+}
+
+#rubric{ padding:12px 22px 11px; border-bottom:1px solid var(--rule); background:var(--paper-sunk); }
+.rubric-head h2{ font-size:14.5px; font-weight:600; }
+.rubric-sub{ display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+.crit{ display:grid; grid-template-columns:60px 1fr 22px; align-items:center; gap:8px; height:19px; }
+.crit label{ font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--ink-2); text-transform:uppercase; }
+.crit output{ font-family:var(--mono); font-size:11.5px; text-align:right; color:var(--ink-2); }
+.crit output.is-hot{ color:var(--accent); font-weight:600; }
+
+input[type=range]{
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:14px; background:none; cursor:ew-resize; margin:0;
+}
+input[type=range]::-webkit-slider-runnable-track{
+  height:3px; border-radius:0;
+  background:linear-gradient(to right, var(--accent) 0 var(--fill), var(--rule-2) var(--fill) 100%);
+}
+input[type=range]::-moz-range-track{
+  height:3px; background:linear-gradient(to right, var(--accent) 0 var(--fill), var(--rule-2) var(--fill) 100%);
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none;
+  width:3px; height:15px; margin-top:-6px;
+  background:var(--accent); border:0; border-radius:0;
+}
+input[type=range]::-moz-range-thumb{
+  width:3px; height:15px; background:var(--accent); border:0; border-radius:0;
+}
+
+.rubric-foot{ display:flex; align-items:center; gap:7px; margin-top:9px; flex-wrap:wrap; }
+.step{
+  width:20px; height:20px; line-height:18px; text-align:center;
+  font-family:var(--mono); font-size:12px; color:var(--ink-2);
+  border:1px solid var(--rule-2);
+}
+.step:hover{ border-color:var(--accent); color:var(--accent); }
+[data-bind="accept-slots"]{ font-family:var(--mono); font-size:13px; font-weight:600; min-width:9px; text-align:center; }
+.reset-link{ margin-left:auto; font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); border-bottom:1px solid var(--rule-2); }
+.reset-link:hover{ color:var(--accent); border-bottom-color:var(--accent); }
+
+#slate-scroll{ overflow-y:auto; overflow-x:hidden; padding:6px 0 14px; }
+#slate-list{ list-style:none; margin:0; padding:0; }
+
+/* a slate row is not a card. No box, no fill, no shadow — rank, title, score. */
+.row{
+  position:relative; width:100%; text-align:left;
+  display:grid; grid-template-columns:24px minmax(0,1fr) 42px;
+  align-items:baseline; column-gap:10px;
+  padding:6px 22px 6px 20px;
+  border-left:2px solid transparent;
+}
+.row:hover{ background:var(--paper-lift); }
+.row.is-sel{ border-left-color:var(--accent); background:var(--paper-lift); }
+.row__rank{ font-family:var(--mono); font-size:11px; color:var(--ink-3); }
+.row__title{
+  font-size:13.5px; line-height:1.3; color:var(--ink);
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.row__score{ font-family:var(--mono); font-size:12px; text-align:right; color:var(--ink-2); font-variant-numeric:tabular-nums; }
+.row.is-below .row__title{ color:var(--ink-3); }
+.row.is-below .row__score{ color:var(--ink-3); }
+.row__marks{ grid-column:2 / 4; display:flex; gap:10px; margin-top:1px; }
+.mark{ font-family:var(--mono); font-size:9px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3); white-space:nowrap; }
+.mark.is-accent{ color:var(--accent); }
+.row.crossed-up{ animation:crossUp 900ms var(--flip-ease); }
+.row.crossed-down{ animation:crossDown 900ms var(--flip-ease); }
+@keyframes crossUp{ 0%,60%{ background:var(--accent-wash); } 100%{ background:transparent; } }
+@keyframes crossDown{ 0%,60%{ background:var(--paper-sunk); } 100%{ background:transparent; } }
+
+/* the cut line is the one rule on this page that is allowed to be loud */
+.cut{ list-style:none; margin:8px 0 7px; padding:0 22px 0 20px; }
+.cut-inner{ display:flex; align-items:center; gap:10px; }
+.cut-rule{ flex:1; height:0; border-top:1.5px solid var(--accent); }
+.cut-label{
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--accent); white-space:nowrap;
+}
+.cut-tie{ padding:5px 22px 0 20px; }
+.cut-tie p:not(.m){ font-size:12.5px; line-height:1.3; color:var(--ink-2); }
+.cut-tie .m{
+  display:block; background:var(--paper-sunk);
+  margin:3px -22px 0 -20px; padding:3px 22px 4px 20px;
+}
+
+/* ================== READING COLUMN - one document ======================= */
+#reading{
+  background:var(--paper-read);
+  display:grid; grid-template-columns:minmax(0,1fr);
+  grid-template-rows:auto auto minmax(0,1fr) auto;
+}
+
+/* --- THE COUPLING SYSTEM -----------------------------------------------
+   Every fact on this page is one block of two lines on two stocks. The human
+   sentence on the sheet, then its machine line directly beneath it on the
+   same left edge, sunk onto a heavier stock. 26px of air before the next
+   block. The pair is bound by that shared left edge; the tint extends the
+   binding rather than replacing it, and it runs out past the text into the
+   gutter on both sides, so the band has no vertical edge and cannot read as
+   a box. The only other ornament is the accent bar that marks a refusal,
+   and it hangs in the margin so the shared left edge never moves.       */
+.pair{ margin:0 0 26px; max-width:none; }
+.pair:last-child{ margin-bottom:0; }
+.say{ font-size:16px; line-height:1.42; color:var(--ink); font-weight:400; max-width:94ch; }
+/* the machine register gets its own stock: one weight down from the sheet,
+   run out to both gutters. Same left edge, different paper.             */
+.sub{
+  display:block;
+  font-family:var(--mono); font-size:11px; line-height:1.5; letter-spacing:.01em;
+  color:var(--ink-3);
+  background:var(--paper-sunk);
+  margin:4px calc(-1 * var(--gut)) 0;
+  padding:4px var(--gut) 5px;
+}
+.sub b{ color:var(--ink-2); font-weight:600; }
+.sub .hot{ color:var(--accent); font-weight:600; }
+h2.say{ font-size:20px; }
+/* --- SECTION HEADS -------------------------------------------------------
+   A section announces itself with a band of desk stock running the whole
+   width of the sheet, carrying its own two-line pair. This is the only thing
+   dividing one section from the next, and it is why the prose below can stay
+   the lightest, quietest ground on the page.                            */
+.pair-h{
+  background:var(--paper);
+  max-width:none;
+  margin:0 calc(-1 * var(--gut)) 18px;
+  padding:11px var(--gut) 10px;
+}
+.doc-sec{ margin-bottom:30px; }
+.doc-sec:last-child{ margin-bottom:0; }
+.pair.is-refused{ border-left:2px solid var(--accent); padding-left:16px; margin-left:-18px; }
+/* a refusal's machine band stops at the accent bar rather than covering it */
+.is-refused > .sub{ margin-left:-16px; padding-left:16px; }
+
+/* --- THE STAMP ------------------------------------------------------------
+   A refusal is the page doing its job, so it is marked the way a clerk marks
+   a document that has been ruled on: struck ink, a little off-square, sitting
+   in the line rather than in a coloured tray. No fill and no error red -- the
+   paper shows through it, and it is the same vermilion that carries every
+   other state on this page.                                              */
+/* once you have decided, the refusal stops being a live state and becomes a
+   line in the record -- so the stamp moves down onto the machine line. */
+.sub .stamp{ vertical-align:-1px; margin-right:8px; }
+.stamp{
+  display:inline-block; vertical-align:1px;
+  font-family:var(--mono); font-size:9px; font-weight:600; line-height:1.35;
+  letter-spacing:.16em; text-transform:uppercase;
+  color:var(--accent);
+  border:1.5px solid var(--accent);
+  padding:2px 7px 1px;
+  margin:0 10px 1px 0;
+  transform:rotate(-1.6deg);
+  white-space:nowrap;
+}
+/* a spread, not a sidebar: two blocks of the same document, each still
+   carrying its own sentence with its own machine line under it */
+.duo{ --gut:14px; display:grid; grid-template-columns:1fr 1fr; gap:46px; margin-bottom:26px; }
+.duo .doc-sec{ margin-bottom:0; }
+.duo .pair{ max-width:none; margin-bottom:0; }
+.duo #unblind-out{ margin-top:22px; }
+/* In the two-up spread every band runs off its own OUTER edge of the sheet and
+   stops in the gutter between the columns. Three edges, one of them bled away:
+   a band, never a panel. */
+.duo > .doc-sec > .pair-h{ margin-bottom:14px; padding-top:9px; padding-bottom:8px; }
+.duo > .doc-sec:first-child .pair-h,
+.duo > .doc-sec:first-child .sub{
+  margin-left:-40px;  padding-left:40px;
+  margin-right:-16px; padding-right:16px;
+}
+.duo > .doc-sec:last-child .pair-h,
+.duo > .doc-sec:last-child .sub{
+  margin-left:-16px;  padding-left:16px;
+  margin-right:-40px; padding-right:40px;
+}
+/* a head band already carries the air below it */
+.pair > .withheld:first-child,
+.pair > .act-row:first-child{ margin-top:0; }
+
+/* --- manuscript header ------------------------------------------------- */
+#ms-head{ padding:13px 40px 11px; border-bottom:1px solid var(--rule); background:var(--paper); }
+.ms-eyebrow{ display:flex; align-items:center; gap:12px; margin-bottom:5px; }
+.chip-fiction{
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--accent); border:1px solid var(--accent-line); padding:1px 5px;
+}
+.eyebrow-end{ margin-left:auto; display:flex; align-items:center; gap:12px; }
+#ms-title{ font-size:24px; line-height:1.18; font-weight:400; letter-spacing:-.006em; max-width:58ch; }
+#ms-meta{ font-size:12.5px; color:var(--ink-3); margin-top:4px; }
+
+/* --- the quiet section nav: it scrolls, it never hides ----------------- */
+#doc-nav{ display:flex; align-items:center; gap:22px; padding:9px 40px 8px; min-width:0; overflow:hidden;
+  background:var(--paper); border-bottom:1px solid var(--rule); }
+.head-row{ display:flex; align-items:baseline; gap:22px; }
+.head-row .recv{ margin-left:auto; }
+.navword{ font-size:13.5px; color:var(--ink-3); border-bottom:1.5px solid transparent; padding-bottom:3px; white-space:nowrap; }
+.navword:hover{ color:var(--ink); }
+.navword.is-here{ color:var(--ink); border-bottom-color:var(--accent); }
+.recv{ display:flex; align-items:baseline; gap:11px; }
+.recvword{ font-family:var(--mono); font-size:11px; color:var(--ink-3); border-bottom:1.5px solid transparent; padding-bottom:3px; white-space:nowrap; }
+.recv-label{ font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); }
+.recvword[aria-pressed=true]{ color:var(--accent); border-bottom-color:var(--accent); }
+
+#desk-body{ --gut:40px; overflow-y:auto; overflow-x:hidden; padding:16px 40px 34px; scroll-behavior:smooth; }
+
+/* --- the withheld byline: absence, set as deliberately as a name ------- */
+.withheld{ display:flex; flex-wrap:wrap; gap:5px 18px; margin-top:11px; }
+.wf{ display:flex; align-items:center; gap:6px; }
+.wf__name{ font-family:var(--mono); font-size:10px; color:var(--ink-3); }
+.wf__void{ height:9px; width:var(--w); display:block; }
+#id-revealed{ display:flex; flex-wrap:wrap; align-items:baseline; gap:5px 20px; margin-top:11px; }
+.id-val{ font-size:15px; color:var(--ink); }
+.act-row{ display:flex; align-items:center; gap:13px; margin-top:12px; }
+
+.human-key{
+  display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--accent); background:var(--accent-wash); padding:2px 6px;
+}
+.human-key svg{ width:10px; height:10px; stroke:var(--accent); fill:none; stroke-width:1.4; }
+.act{ font-size:13.5px; color:var(--accent); border-bottom:1px solid var(--accent); padding-bottom:1px; }
+.act:hover{ border-bottom-width:2px; }
+.act[disabled]{ color:var(--ink-3); border-bottom-color:var(--rule-2); cursor:default; }
+
+/* --- the manuscript itself: the hero of the page ---------------------- */
+.prose{ max-width:68ch; }
+.prose p:not(.sub){ margin:0 0 15px; font-size:16px; line-height:1.66; color:var(--ink); }
+.prose p:last-child{ margin-bottom:0; }
+.sec{
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-3); margin:0 0 7px; padding-bottom:4px; border-bottom:1px solid var(--rule);
+  max-width:68ch;
+}
+.prose .q-ver{ border-bottom:1px solid var(--accent-line); }
+.payload{
+  display:block; background:var(--accent-wash); color:var(--ink);
+  border-left:3px solid var(--accent); padding:10px 13px; margin:0 0 15px; max-width:68ch;
+  font-family:var(--mono); font-size:11.5px; line-height:1.55;
+}
+.payload .m-cap{ display:block; color:var(--accent); margin-bottom:5px; }
+.void{
+  display:block; max-width:68ch; margin:0 0 15px;
+  border:1px dashed var(--rule-2); padding:10px 13px;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.05em; color:var(--ink-3);
+}
+.void.is-tall{ padding:16px 13px; }
+
+/* --- findings --------------------------------------------------------- */
+.quote{
+  margin:7px 0 0; padding-left:14px; border-left:1px solid var(--accent-line);
+  font-size:15px; line-height:1.5; font-style:italic; color:var(--ink-2); max-width:74ch;
+}
+
+/* --- the record: the same two-line block, one per event --------------- */
+.filters{ display:flex; gap:14px; margin:0 0 15px; }
+.filt{
+  font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ink-3); border-bottom:1px solid transparent; padding-bottom:2px;
+}
+.filt[aria-pressed=true]{ color:var(--ink); border-bottom-color:var(--accent); }
+.filt.is-ref[aria-pressed=true]{ color:var(--accent); }
+.ev{ position:relative; margin:0 0 17px; max-width:none; }
+.ev:last-child{ margin-bottom:0; }
+/* the actor is carried by SHAPE, not colour: filled square = you, open diamond = agent */
+.ev__g{ position:absolute; left:-23px; top:6px; }
+.ev__g svg{ width:10px; height:10px; }
+.ev[data-actor=human] .ev__g svg{ fill:var(--ink); stroke:none; }
+.ev[data-actor=agent] .ev__g svg{ fill:none; stroke:var(--ink-3); stroke-width:1.5; }
+.ev .say{ font-size:15.5px; }
+.ev.is-refused{ border-left:2px solid var(--accent); padding-left:16px; margin-left:-18px; }
+.ev.is-refused .ev__g{ left:-5px; }
+.ev.is-refused .ev__g svg{ stroke:var(--accent); }
+.ev details summary{ list-style:none; cursor:pointer; }
+.ev details summary::-webkit-details-marker{ display:none; }
+.ev details summary:hover .say{ color:var(--accent); }
+.ev__peek{ font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); border-bottom:1px solid var(--rule-2); }
+/* the raw return: machine stock again, inset and ruled so it reads as an
+   expansion of the line above rather than as another record of its own */
+.ev__more{
+  font-family:var(--mono); font-size:11px; line-height:1.55; color:var(--ink-3);
+  background:var(--paper-sunk); padding:10px 13px; margin-top:9px; max-width:80ch;
+  border-left:2px solid var(--rule-2);
+  white-space:pre-wrap; overflow-x:auto;
+}
+.ev__more b{ color:var(--accent); font-weight:400; }
+.ev__link{ font-size:15.5px; line-height:1.42; color:var(--ink); text-align:left; max-width:94ch; border-bottom:1px solid var(--rule-2); }
+.ev__link:hover{ color:var(--accent); border-bottom-color:var(--accent); }
+
+/* --- the seven tools -------------------------------------------------- */
+table.tools{ border-collapse:collapse; max-width:calc(88ch + 11px); width:calc(100% + 11px); margin-left:-11px; }
+table.tools th{
+  font-family:var(--mono); font-size:9px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:400; text-align:right; padding:0 0 5px; border-bottom:1px solid var(--rule);
+}
+table.tools th:first-child,table.tools th:nth-child(2){ text-align:left; }
+table.tools td{ font-size:14px; padding:4px 0; color:var(--ink-2); text-align:right; }
+table.tools td:first-child{
+  text-align:left; font-family:var(--mono); font-size:12px; color:var(--ink);
+  background:var(--paper-sunk); padding:4px 26px 4px 11px; white-space:nowrap;
+}
+table.tools th:first-child{ padding-right:26px; padding-left:11px; }
+table.tools th:nth-child(3),table.tools th:nth-child(4),
+table.tools td:nth-child(3),table.tools td:nth-child(4){ width:96px; }
+table.tools td:nth-child(2){ text-align:left; }
+table.tools td.hint{ font-family:var(--mono); font-size:11px; color:var(--ink-3); }
+table.tools td.yes{ font-family:var(--mono); font-size:11px; color:var(--accent); }
+
+.honesty{ max-width:80ch; }
+.honesty p{ font-size:14.5px; line-height:1.62; color:var(--ink-2); }
+
+/* --- verdict: pinned, so the human-only decision is never off-frame --- */
+#verdict{
+  --gut:40px; background:var(--paper);
+  border-top:1px solid var(--rule); padding:10px 40px 11px;
+  display:grid; grid-template-columns:minmax(0,1fr) auto; gap:26px; align-items:center;
+}
+/* it bleeds left to the frame and stops at its own column, never under the
+   controls sitting beside it */
+#verdict .sub{ margin-right:0; padding-right:16px; }
+.rec-group{ display:flex; border:1px solid var(--rule-2); }
+.rec-group button{ font-size:12.5px; padding:5px 11px; color:var(--ink-2); border-right:1px solid var(--rule-2); }
+.rec-group button:last-child{ border-right:0; }
+.rec-group button[aria-checked=true]{ background:var(--accent); color:var(--paper-read); }
+.rec-group button:hover:not([aria-checked=true]){ background:var(--paper-lift); color:var(--ink); }
+.commit{ font-size:13px; padding:5px 15px; border:1px solid var(--accent); color:var(--accent); background:var(--paper); }
+.commit:hover{ background:var(--accent); color:var(--paper-read); }
+#verdict-row{ display:flex; align-items:center; gap:13px; }
+#verdict.is-committed .say{ color:var(--accent); }
+
+/* ============================== STATUS BAR =============================== */
+#status{
+  display:flex; align-items:center; gap:0;
+  padding:0 20px; border-top:1px solid var(--rule); background:var(--paper-sunk);
+}
+#status .m{ font-size:10px; }
+.sep{ color:var(--rule-2); padding:0 8px; }
+#status .fict{ margin-left:auto; color:var(--accent); }
+
+/* ================================ DIALOGS ================================ */
+dialog{
+  border:1px solid var(--rule-2); background:var(--paper-read); color:var(--ink);
+  padding:0; box-shadow:none;
+}
+dialog::backdrop{ background:var(--backdrop); }
+
+/* --- the split-screen reveal -------------------------------------------- */
+#dlg-split{ width:min(1160px, 94vw); height:min(720px, 92vh); }
+#dlg-split .wrap{ display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; height:100%; }
+.split-head{ display:flex; align-items:flex-start; gap:16px; padding:16px 26px 12px; border-bottom:1px solid var(--rule); }
+.split-head h2{ font-size:20px; font-weight:400; margin:3px 0 0; max-width:52ch; line-height:1.25; }
+.pager{ margin-left:auto; display:flex; align-items:center; gap:9px; }
+.pager button{ width:24px; height:24px; border:1px solid var(--rule-2); font-family:var(--mono); font-size:12px; color:var(--ink-2); }
+.pager button:hover{ border-color:var(--accent); color:var(--accent); }
+.split-lede{ padding:12px 26px; background:var(--accent-wash); border-bottom:1px solid var(--accent-line); }
+.split-lede p:not(.m){ font-size:18px; line-height:1.34; color:var(--ink); max-width:76ch; }
+.split-lede .m{ margin-top:5px; color:var(--ink-2); }
+.split-body{ display:grid; grid-template-columns:1fr 1fr; min-height:0; }
+.pane{ display:grid; grid-template-rows:auto minmax(0,1fr); min-height:0; }
+.pane + .pane{ border-left:1px solid var(--rule); }
+.pane__head{ display:flex; align-items:baseline; gap:9px; padding:9px 26px 8px; border-bottom:1px solid var(--rule); background:var(--paper); }
+.pane__head h3{ font-size:14.5px; font-weight:600; margin:0; }
+.pane__text{ position:relative; overflow-y:auto; padding:16px 26px 40px; }
+.pane__text p:not(.m){ margin:0 0 13px; font-size:14.5px; line-height:1.62; color:var(--ink-2); }
+.pane__text .sec{ max-width:none; }
+.pane__text .payload,.pane__text .void{ max-width:none; }
+.payload.is-hit{ outline:2px solid var(--accent); outline-offset:2px; }
+.void.is-hit{ outline:2px solid var(--accent); outline-offset:2px; }
+.split-foot{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:22px; align-items:center; padding:12px 26px; border-top:1px solid var(--rule); background:var(--paper); }
+.stats{ display:flex; gap:26px; }
+.stat b{ display:block; font-family:var(--mono); font-size:16px; font-weight:600; color:var(--ink); }
+.stat b.sm{ font-size:11.5px; font-weight:400; padding-top:4px; }
+
+/* --- centred dialogs ---------------------------------------------------- */
+.dlg-c{ width:min(500px,92vw); padding:22px 26px 20px; }
+.dlg-c h2{ font-size:20px; font-weight:400; margin:4px 0 10px; }
+.caution{ border-left:3px solid var(--accent); background:var(--accent-wash); padding:10px 13px; margin:0 0 14px; }
+.caution p:not(.m){ font-size:14px; line-height:1.5; color:var(--ink); }
+.chips{ display:flex; flex-wrap:wrap; gap:7px; margin:8px 0 9px; }
+.chips button{ font-size:12px; color:var(--ink-2); border:1px solid var(--rule-2); padding:3px 8px; }
+.chips button:hover{ border-color:var(--accent); color:var(--accent); }
+textarea,input[type=text]{
+  width:100%; font-family:var(--serif); font-size:14.5px; line-height:1.5;
+  color:var(--ink); background:var(--paper-read);
+  border:1px solid var(--rule-2); padding:7px 9px; resize:none;
+}
+textarea:focus,input[type=text]:focus{ border-color:var(--accent); outline:none; }
+input[type=text]::placeholder,textarea::placeholder{ color:var(--ink-3); }
+.dlg-actions{ display:flex; align-items:center; gap:14px; margin-top:14px; }
+.btn-quiet{ font-size:13.5px; color:var(--ink-2); border-bottom:1px solid var(--rule-2); padding-bottom:1px; }
+.btn-quiet:hover{ color:var(--accent); border-bottom-color:var(--accent); }
+.btn-firm{ margin-left:auto; font-size:13.5px; padding:6px 15px; border:1px solid var(--accent); color:var(--accent); }
+.btn-firm:hover{ background:var(--accent); color:var(--paper-read); }
+.btn-firm[aria-disabled=true]{ border-color:var(--rule-2); color:var(--ink-3); cursor:default; background:none; }
+
+/* --- about -------------------------------------------------------------- */
+#dlg-about{ width:min(720px,94vw); height:min(690px,92vh); }
+#dlg-about .wrap{ display:grid; grid-template-rows:auto minmax(0,1fr); height:100%; }
+.about-head{ display:flex; align-items:center; gap:14px; padding:16px 28px 12px; border-bottom:1px solid var(--rule); }
+.about-head h2{ font-size:22px; font-weight:400; margin:0; }
+.about-body{ overflow-y:auto; padding:18px 28px 28px; }
+.about-body section{ margin-bottom:20px; max-width:66ch; }
+.about-body h3{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); font-weight:400; margin:0 0 6px; }
+.about-body p:not(.m){ margin:0 0 9px; font-size:15px; line-height:1.62; color:var(--ink-2); }
+.about-body ol{ margin:0; padding-left:18px; font-size:15px; line-height:1.62; color:var(--ink-2); }
+.about-body li{ margin-bottom:5px; }
+.about-body code{ font-family:var(--mono); font-size:12.5px; color:var(--ink-3); }
+.pull{
+  margin:12px 0; padding-left:15px; border-left:2px solid var(--accent);
+  font-size:16.5px; line-height:1.55; font-style:italic; color:var(--ink);
+}
+.honesty{ border-top:1px solid var(--accent-line); border-bottom:1px solid var(--accent-line); padding:12px 0; }
+.honesty p{ color:var(--ink); }
+
+/* ============================== NARROW / SHORT =========================== */
+/* One compaction step, taken on either axis. Nothing is removed - the same
+   sentences, voids, record and tools survive; the type and the air shrink.  */
+@media (max-width:1180px), (max-height:720px){
+  #room{ grid-template-columns:262px minmax(0,1fr); }
+  .duo{ grid-template-columns:minmax(0,1fr); gap:0; margin-bottom:22px; }
+  .duo .doc-sec{ margin-bottom:20px; }
+  #ms-head,#doc-nav,#desk-body,#verdict{ padding-left:26px; padding-right:26px; }
+  #desk-body,#verdict{ --gut:26px; }
+  .duo > .doc-sec:first-child .pair-h,
+  .duo > .doc-sec:first-child .sub,
+  .duo > .doc-sec:last-child .pair-h,
+  .duo > .doc-sec:last-child .sub{
+    margin-left:-26px; padding-left:26px; margin-right:-26px; padding-right:26px;
+  }
+  .cut-tie .m{ margin-left:-14px; margin-right:-16px; padding-left:14px; padding-right:16px; }
+  .pair-h{ padding-top:9px; padding-bottom:8px; margin-bottom:14px; }
+  .duo > .doc-sec > .pair-h{ padding-top:8px; padding-bottom:7px; margin-bottom:12px; }
+  .sub{ padding-top:3px; padding-bottom:4px; }
+  .stamp{ font-size:8.5px; letter-spacing:.14em; padding:2px 6px 1px; margin-right:8px; }
+  #ms-head{ padding-top:10px; padding-bottom:9px; }
+  #ms-title{ font-size:21px; }
+  #ms-meta{ font-size:11.5px; }
+  #doc-nav{ padding-top:7px; padding-bottom:6px; gap:16px; }
+  .navword{ font-size:12.5px; }
+  .recvword{ font-size:10px; }
+  #desk-body{ padding-top:12px; padding-bottom:24px; }
+  h2.say{ font-size:17px; }
+  .say{ font-size:14.5px; }
+  .ev .say,.ev__link{ font-size:14px; }
+  .pair{ margin-bottom:20px; }
+  .doc-sec{ margin-bottom:26px; }
+  .ev{ margin-bottom:14px; }
+  .prose p:not(.sub){ font-size:14.5px; line-height:1.6; margin-bottom:12px; }
+  .quote{ font-size:13.5px; }
+  .withheld{ gap:4px 13px; margin-top:8px; }
+  .wf__name{ font-size:9px; }
+  table.tools td{ font-size:12.5px; padding:3px 0; }
+  #verdict{ padding-top:8px; padding-bottom:9px; gap:18px; }
+  #verdict-row{ gap:10px; }
+  .rec-group button{ font-size:11.5px; padding:4px 8px; }
+  .commit{ font-size:12px; padding:4px 11px; }
+  #rubric{ padding:9px 16px 9px; }
+  .crit{ grid-template-columns:54px 1fr 20px; height:18px; }
+  .row{ padding:5px 16px 5px 14px; }
+  .row__title{ font-size:12.5px; }
+  .cut{ padding:0 16px 0 14px; }
+  .cut-tie{ padding-left:14px; padding-right:16px; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{ animation-duration:1ms !important; animation-iteration-count:1 !important; transition-duration:1ms !important; scroll-behavior:auto !important; }
+}
+
+/* ===========================================================================
+   LIVE WIRING — added for the port, in the vocabulary already declared above.
+   No new colour, no new type family, no new radius, no new shadow. Every rule
+   here reuses --paper / --paper-sunk / --accent / --accent-wash and the
+   .pair / .say / .sub coupling, because a fact the demo hardcoded and a fact
+   the app derives must read as the same object.
+   =========================================================================== */
+
+/* --- the frame, now that the mount points carry it ---------------------- */
+/* The single column is minmax(0,1fr), not the implicit `auto`. An auto column
+   is sized to its widest item's MAX-CONTENT, so one nowrap row inside the
+   status bar would widen the whole frame past the viewport even though that
+   row is clipped. min-width:0 on the rows is the same guard one level down. */
+.app{
+  grid-template-rows:auto minmax(0,1fr) auto;
+  grid-template-columns:minmax(0,1fr);
+  width:100%; max-width:100vw;
+}
+.app > *{ min-width:0; }
+#masthead{ height:46px; flex:0 0 auto; }
+#mount-header{ display:block; background:var(--paper); }
+#mount-main{
+  display:grid; grid-template-columns:328px minmax(0,1fr); min-height:0;
+}
+#mount-main > *{ min-height:0; min-width:0; }
+#mount-queue{
+  position:relative; border-right:1px solid var(--rule);
+  display:grid; grid-template-columns:minmax(0,1fr);
+  grid-template-rows:auto minmax(0,1fr); background:var(--paper); min-height:0;
+}
+.reading{
+  background:var(--paper-read); display:grid; grid-template-columns:minmax(0,1fr);
+  grid-template-rows:auto minmax(0,1fr) auto; min-height:0;
+}
+.reading-head{ min-width:0; }
+#mount-manuscript,#mount-findings,#mount-ledger{ display:block; }
+#mount-footer{ display:block; }
+/* The bar is one line at every supported size. It carries counts, not prose, so
+   the honest failure when it runs out of room is to clip the least load-bearing
+   item — never to wrap and grow the frame past 100dvh. */
+#status{ height:26px; overflow:hidden; white-space:nowrap; }
+#status > *{ flex:0 0 auto; }
+#mount-tool-status{ margin:0; min-width:0; flex:0 1 auto; overflow:hidden; text-overflow:ellipsis; }
+#status .fict{ min-width:0; flex:0 1 auto; overflow:hidden; text-overflow:ellipsis; }
+#mount-split-screen{ display:contents; }
+
+/* the plain-text fallback keeps its role=status announcement and gives up its
+   pixels to the rendered band, which carries the same sentence */
+#webmcp-absent{
+  position:absolute; top:0; left:0; width:1px; height:1px;
+  overflow:hidden; clip-path:inset(50%); white-space:nowrap;
+}
+
+/* --- the WebMCP band: a browser without a flag, not an error ------------ */
+/* neutral tone by contract (states.js WEBMCP_COPY.unavailable) — machine
+   stock, the same ground every machine line on this page already sits on */
+[data-bind="webmcp-band"]{
+  display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+  padding:7px 20px 8px; background:var(--paper-sunk);
+  border-bottom:1px solid var(--rule);
+}
+[data-bind="webmcp-band"] .say{ font-size:14px; }
+[data-bind="webmcp-band"] .m{ flex:1 1 22ch; min-width:0; }
+[data-webmcp="active"] [data-bind="webmcp-band"]{ display:none; }
+[data-action="copy-flag-url"]{
+  flex:0 0 auto; font-family:var(--mono); font-size:10px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--ink-2);
+  border:1px solid var(--rule-2); padding:3px 9px; white-space:nowrap;
+}
+[data-action="copy-flag-url"]:hover{ border-color:var(--accent); color:var(--accent); }
+[data-bind="webmcp-failures"]{
+  list-style:none; margin:5px 0 0; padding:0; flex:1 0 100%;
+  font-family:var(--mono); font-size:10.5px; color:var(--accent);
+}
+[data-bind="webmcp-failures"] li{ margin-top:2px; }
+
+/* --- the notice band: system conditions, never ledger rows -------------- */
+[data-bind="notice-band"]{ display:block; }
+[data-bind="notice-band"]:empty{ display:none; }
+.notice{
+  display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;
+  padding:7px 20px 8px; border-bottom:1px solid var(--rule);
+  background:var(--paper-sunk);
+}
+.notice .say{ font-size:14px; }
+.notice .m{ flex:1 1 20ch; min-width:0; }
+/* severity error borrows the accent hairline the page already uses for the
+   cut and for a refusal's margin bar. Refusals never reach this band. */
+.notice[data-severity="error"]{ border-left:2px solid var(--accent); }
+.notice-dismiss{
+  margin-left:auto; font-family:var(--mono); font-size:9.5px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink-3);
+  border-bottom:1px solid var(--rule-2); padding-bottom:1px;
+}
+.notice-dismiss:hover{ color:var(--accent); border-bottom-color:var(--accent); }
+
+/* --- the agent pulse: the sweep, in the status bar ---------------------- */
+[data-bind="agent-pulse"]{ display:inline-flex; align-items:center; gap:6px; }
+[data-bind="agent-pulse"] .pulse-dot{
+  width:6px; height:6px; flex:0 0 auto; background:var(--ink-3);
+  transform:rotate(45deg);
+}
+[data-bind="agent-pulse"][data-pulse="invoked"] .pulse-dot{
+  background:var(--ink); animation:pulseBeat 900ms linear infinite;
+}
+[data-bind="agent-pulse"][data-outcome="refused"] .pulse-dot{ background:var(--accent); }
+[data-bind="agent-pulse"][data-outcome="refused"]{ color:var(--accent); }
+[data-bind="agent-pulse"][data-pulse="decay"]{ opacity:.55; }
+@keyframes pulseBeat{ 0%,100%{ opacity:1 } 50%{ opacity:.25 } }
+
+/* --- chips: a tool call may only ever cause a chip to appear ------------ */
+.chip-refusal{
+  display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--accent); border:1px solid var(--accent-line); padding:2px 6px;
+}
+button.chip-refusal:hover{ border-color:var(--accent); background:var(--accent-wash); }
+
+/* --- empty states: the same two-line pair, so an absence reads as a fact - */
+.empty{ margin:0; }
+.empty .say{ color:var(--ink-2); }
+.empty-action{
+  display:inline-block; margin-top:9px; font-size:13.5px; color:var(--accent);
+  border-bottom:1px solid var(--accent); padding-bottom:1px;
+}
+.empty-action:hover{ border-bottom-width:2px; }
+#desk-body > [data-bind="desk-empty"]{ padding-top:6px; }
+[data-bind="findings-refused-count"]{ display:block; margin-top:2px; }
+.refused-link{
+  font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--accent); border-bottom:1px solid var(--accent-line); padding-bottom:1px;
+}
+.refused-link:hover{ border-bottom-color:var(--accent); }
+.refused-link[disabled]{ color:var(--ink-3); border-bottom-color:var(--rule-2); cursor:default; }
+
+/* --- ledger controls: the export sits with the filters ------------------ */
+.filters{ align-items:baseline; flex-wrap:wrap; }
+[data-action="copy-ledger"]{
+  margin-left:auto; font-family:var(--mono); font-size:10px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--ink-3);
+  border-bottom:1px solid var(--rule-2); padding-bottom:2px;
+}
+[data-action="copy-ledger"]:hover{ color:var(--accent); border-bottom-color:var(--accent); }
+.copy-note{ flex:1 0 100%; margin-top:4px; }
+
+/* --- the region error plate: scoped, so no judge sees a blank app ------- */
+.plate{
+  border-left:2px solid var(--accent); background:var(--paper-sunk);
+  padding:10px 13px; margin:0;
+}
+.plate .say{ font-size:14.5px; }
+.plate-actions{ display:flex; gap:14px; margin-top:8px; }
+.plate-actions button{
+  font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ink-2); border-bottom:1px solid var(--rule-2); padding-bottom:1px;
+}
+.plate-actions button:hover{ color:var(--accent); border-bottom-color:var(--accent); }
+
+/* --- slate rows are keyed by the contract attribute now ----------------- */
+#mount-queue .row{ width:100%; }
+
+/* --- verdict, driven by state.committed --------------------------------- */
+#verdict [data-bind="verdict-blocked"]{ display:block; }
+#verdict [data-bind="verdict-blocked"]:empty{ display:none; }
+.rec-group button[disabled]{ color:var(--ink-3); cursor:default; }
+.commit[disabled]{ border-color:var(--rule-2); color:var(--ink-3); cursor:default; background:none; }
+
+/* --- the split-screen when nothing was removed --------------------------- */
+.pane__text .empty{ margin-top:4px; }
+
+/* --- one compaction step, matching the one already declared above -------- */
+@media (max-width:1180px), (max-height:720px){
+  #mount-main{ grid-template-columns:262px minmax(0,1fr); }
+  [data-bind="webmcp-band"],.notice{ padding-left:16px; padding-right:16px; }
+  [data-bind="webmcp-band"] .say,.notice .say{ font-size:13px; }
+}

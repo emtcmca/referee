@@ -1,0 +1,54 @@
+# ---------------------------------------------------------------------------
+# Referee — Netlify static hosting config.
+#
+# WHICH IS WHICH: this file and `vercel.json` are two equivalent configurations
+# for the SAME static site. The target host is not chosen yet, so both are in
+# the repo. Netlify reads netlify.toml and ignores vercel.json; Vercel reads
+# vercel.json and ignores netlify.toml, so keeping both is safe. Whichever host
+# ends up serving the production URL, delete the other file at that point so
+# there is one config and no ambiguity.
+#
+# Both do the same three things: no build step, publish the repo root as-is,
+# and pin the JavaScript MIME type so `.mjs` and `.js` modules are served as
+# `text/javascript` rather than sniffed. A module served with the wrong
+# Content-Type is refused by the browser and every tool registration dies with
+# it, which is a silent failure worth spending config on.
+#
+# There is no build because there is nothing to build: vanilla ES modules,
+# no bundler, no framework, no npm install, no backend.
+# ---------------------------------------------------------------------------
+
+[build]
+  publish = "."
+  command = ""
+
+[[headers]]
+  for = "/*.mjs"
+  [headers.values]
+    Content-Type = "text/javascript; charset=utf-8"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Content-Type = "text/javascript; charset=utf-8"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/src/*"
+  [headers.values]
+    Content-Type = "text/javascript; charset=utf-8"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/*.json"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    Cache-Control = "public, max-age=0, must-revalidate"

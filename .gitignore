@@ -1,0 +1,68 @@
+# ---------------------------------------------------------------------------
+# Referee — .gitignore
+# This is a static site with no build step and no dependencies. Almost nothing
+# should ever be generated here. Anything that IS generated, or that could
+# carry a secret, is refused below.
+# ---------------------------------------------------------------------------
+
+# Secrets — never, in any form, under any name
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials.json
+service-account*.json
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm/
+*.tgz
+package-lock.json.bak
+
+# Host / deploy caches (we do not commit build output; there is no build)
+.vercel/
+.netlify/
+dist/
+build/
+.cache/
+
+# Local scratch — working notes, spikes, recordings, anything not shipped
+scratch/
+tmp/
+temp/
+_local/
+*.local
+*.local.*
+*.bak
+*.orig
+*.rej
+
+# Editor and tooling
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.history/
+
+# OS noise
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Working reference, not part of the submission — organizer emails and rules extracts.
+reference/
