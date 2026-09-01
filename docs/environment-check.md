@@ -37,28 +37,37 @@ Record which environment failed and what the agent actually received.
 
 | | Environment | Version |
 |---|---|---|
-| **A** | ChatGPT desktop, in-app browser | `[FILL: ChatGPT desktop app version + in-app browser engine/version]` |
-| **B** | Chrome 149+ with `chrome://flags/#enable-webmcp-testing` **enabled** | `[FILL: full chrome://version string]` |
+| **A** | ChatGPT desktop, in-app browser | `[FILL: ChatGPT desktop app version + in-app browser engine/version]` — **NOT YET RUN** |
+| **B** | Chrome 149+ with `chrome://flags/#enable-webmcp-testing` **enabled** | Chrome **152.0.0.0**, Windows NT 10.0 Win64 x64. Flag enabled, browser relaunched. |
+| **C** | Codex chat session, embedded browser view | Version not recorded. **Not an environment judges will use.** Recorded because it answered the go/no-go question first. |
 
-Both are places judges will test. Chrome's documentation describes Chrome; the in-app browser's
-serialization behavior is not documented, and any divergence between the two is the highest-severity
-risk in the build. Record both or the check is not done.
+A and B are the places judges will test. Chrome's documentation describes Chrome; the in-app
+browser's serialization behavior is not documented, and any divergence between the two is the
+highest-severity risk in the build.
+
+**C is not a substitute for either.** It is logged because it is where the go/no-go was first
+answered, and because a second independent host handling returns correctly is real evidence about
+the architecture even when it is not evidence about the target environments.
 
 ---
 
 ## Results
 
-Fill every cell with **PASS**, **FAIL**, or **N/A**, plus what was actually observed. "It looked
-right" is not an observation — paste the string the agent received, or say UNVERIFIED.
+Every cell is **PASS**, **FAIL**, **N/A**, or **NOT RUN**, plus what was actually observed. "It
+looked right" is not an observation — paste the string the agent received, or write UNVERIFIED.
 
-| # | Check | A · ChatGPT in-app | B · Chrome 149+ | Observed |
-|---|---|---|---|---|
-| **5** | **A returned `{ok:false}` refusal reaches the agent as a usable RESULT, not swallowed as an error** — **GO/NO-GO, run first** | `[FILL]` | `[FILL]` | `[FILL: paste exactly what the agent received]` |
-| 1 | `document.modelContext` is present | `[FILL]` | `[FILL]` | `[FILL: typeof document.modelContext; and whether the navigator.modelContext fallback was needed]` |
-| 2 | `await registerTool(...)` resolves without throwing | `[FILL]` | `[FILL]` | `[FILL]` |
-| 3 | The agent discovers and calls the tool | `[FILL]` | `[FILL]` | `[FILL: tool name called, and how it was discovered]` |
-| 4 | A returned JSON **string** arrives at the agent intact and readable | `[FILL]` | `[FILL]` | `[FILL: paste the received string; note any re-wrapping or truncation]` |
-| 6 | `annotations` are accepted without error | `[FILL]` | `[FILL]` | `[FILL: which annotation keys were sent, and whether either environment rejected them]` |
+| # | Check | A · ChatGPT in-app | B · Chrome 152 | C · Codex session | Observed |
+|---|---|---|---|---|---|
+| **5** | **A returned `{ok:false}` refusal reaches the agent as a usable RESULT, not swallowed as an error** — **GO/NO-GO, run first** | NOT RUN | NOT RUN | **PASS** | The agent called `probe_always_refuses` and reported the full payload back, including `code`, `message`, and `retry_hint`. Not surfaced as an error, not truncated. Verbatim below. |
+| 1 | `document.modelContext` is present | NOT RUN | **PASS** | PASS | B reported `surface: document.modelContext`. The `navigator.modelContext` fallback was **not** needed, which matches its deprecation in Chrome 150. |
+| 2 | `await registerTool(...)` resolves without throwing | NOT RUN | **PASS** | PASS | All three probe tools registered under one `AbortController`. |
+| 3 | The agent discovers and calls the tool | NOT RUN | NOT RUN | **PASS** | The agent listed all three tools by name — `probe_echo`, `probe_always_refuses`, `probe_untrusted` — then called two of them. |
+| 4 | A returned JSON **string** arrives at the agent intact and readable | NOT RUN | NOT RUN | **PASS** | `probe_echo` returned `{"ok":true,"echoed":"hello","marker":"REFEREE_PROBE_OK"}`. No re-wrapping, no truncation. |
+| 6 | `annotations` are accepted without error | NOT RUN | **PASS** | PASS | `readOnlyHint` and `untrustedContentHint` sent on all three tools. Neither environment rejected the key, so the drop-annotations fallback was not exercised. |
+
+**Standing gap.** Rows 3, 4 and 5 are unconfirmed in **both environments judges will use**. B has
+the page loaded and the tools registered but no agent has driven it. A has not been opened. The
+architectural question is answered; the environment-parity question is not.
 
 **Check 6 fallback rule:** if an environment rejects the `annotations` key, drop annotations *in
 that environment* rather than failing registration. Record that it was dropped and where.
@@ -72,13 +81,40 @@ Paste rather than paraphrase.
 **Deliberately-failing call used for check 5**
 
 ```
-[FILL: the exact tool name and arguments used to force a refusal]
+probe_always_refuses({})
 ```
 
-**What the agent received back (Environment A)**
+`probe_always_refuses` exists for no other purpose. It takes no arguments, does nothing, and
+returns a structured refusal. It was called first, before any successful call, so that a failure
+here could not be mistaken for a downstream problem.
+
+**What the agent received back (Environment C · Codex session)**
 
 ```
-[FILL: verbatim]
+{"ok":false,
+ "code":"PROBE_REFUSAL",
+ "message":"This tool always refuses. If you can read this, refusals survive the boundary.",
+ "retry_hint":"No retry is possible. Report that you received a structured refusal."}
+```
+
+The agent read the payload and reported its contents. It did not report a tool failure, an error,
+or an empty result. This is the single observation the project most depended on: **Referee's
+enforcement mechanisms are all returned refusals, so a host that swallowed them would break the
+premise silently rather than loudly.**
+
+**And the successful call, for contrast (Environment C)**
+
+```
+probe_echo({ message: "hello" })
+{"ok":true,"echoed":"hello","marker":"REFEREE_PROBE_OK"}
+```
+
+Success and refusal travel the same path and arrive the same way. That symmetry is the point.
+
+**What the agent received back (Environment A · ChatGPT desktop in-app browser)**
+
+```
+[FILL: verbatim — NOT YET RUN]
 ```
 
 **What the agent received back (Environment B)**

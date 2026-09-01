@@ -4,10 +4,10 @@ Referee is a static double-blind peer-review room where a human reviewer and a b
 
 > When a page mediates between an agent and untrusted content, it can enforce things the agent cannot enforce for itself: what it may see, what it may claim, and what it may decide.
 
-- Live demo: [FILL: live demo URL]
+- Live demo: https://referee-psi.vercel.app
 - Demo video: [FILL: demo video URL]
 - License: Apache-2.0
-- Repository: [FILL: repository URL]
+- Repository: https://github.com/emtcmca/referee
 
 ## What it is
 
@@ -68,9 +68,38 @@ There is no install command, build step, backend, or environment configuration. 
 
 ## File layout
 
-[FILL: confirmed final file tree]
+```
+referee/
+  index.html                  the page shell and its mount points
+  src/
+    main.js                   composition root. The only file that sees every layer,
+                              and the only one allowed to reach both core and identity
+    core/            (15)     state, append-only ledger, ranking, event bus, and the
+                              capability object handed to tools, which has no path
+                              to identity
+    identity/         (1)     author names, affiliations, funding. Reachable from the
+                              UI layer and from nowhere else
+    corpus/           (1)     twelve fictional manuscripts, ~13,000 words, carrying
+                              four seeded injection payloads and two near-miss decoys
+    sanitize/         (4)     the injection sanitizer and its fixtures
+    verify/           (3)     the evidence verifier: normalization, exact match,
+                              and the fuzzy fallback
+    tools/            (9)     the defineTool wrapper, registration bootstrap, and
+      handlers/       (7)     one file per WebMCP tool
+    ui/               (9)     bindings, activity, clipboard, state machine
+      render/        (13)     the interface, plus theme.css
+  scripts/            (4)     blinding guard, its selftest, the test runner,
+                              the acceptance checker
+  probe/              (1)     the standalone WebMCP environment probe
+  docs/               (4)     architecture notes and the environment check
+  design/             (2)     the approved visual reference and the brief it was
+                              built to
+  LICENSE                     Apache-2.0
+```
 
-The final tree should identify the page entry point, the seven WebMCP tool definitions, the adversarial-text boundary, the fictional manuscript corpus, state and ledger modules, styles, and the testing materials. Confirm the names and paths against the final repository before replacing this placeholder.
+Two paths carry the argument. `src/core/capabilities.js` builds the object the tool layer
+receives and deliberately gives it no way to reach `src/identity/`. `scripts/check-blinding.mjs`
+walks the import graph and fails if any guarded module reaches identity anyway. Run it yourself.
 
 ## Honesty boundary
 
@@ -94,5 +123,5 @@ Apache-2.0. Built for the OpenAI WebMCP Challenge.
 
 Eric Tetzlaff
 
-- GitHub: [FILL: Eric Tetzlaff GitHub URL]
-- Site: [FILL: Eric Tetzlaff site URL]
+- GitHub: https://github.com/emtcmca
+- Site: https://erictetzlaff.com
