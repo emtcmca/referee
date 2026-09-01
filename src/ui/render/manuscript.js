@@ -96,11 +96,16 @@ export function renderReadingHead(root, state) {
   const meta = root.querySelector('#ms-meta');
   const unblind = root.querySelector('[data-action="open-unblind"]');
   const chip = root.querySelector('.chip-fiction');
-  /* The section nav points at six sections. With nothing open it points at
-     nothing, so it is a row of six dead words competing with the one live
-     instruction on the sheet. It comes back with the manuscript. */
+  /* The head is ABOUT a manuscript. With none open it was still drawing a
+     title, a meta line and a disabled Unblind control, which put a second
+     sentence of equal weight directly above the one on the sheet and gave the
+     eye two places to start. The nav has the same problem: it points at six
+     sections that are not there. Both come back with the manuscript. */
+  root.dataset.headState = doc ? 'open' : 'empty';
   const nav = root.querySelector('#doc-nav');
   if (nav) nav.hidden = !doc;
+  const head = root.querySelector('#ms-head');
+  if (head) head.hidden = !doc;
 
   if (!doc) {
     if (idNode) idNode.textContent = 'no manuscript open';

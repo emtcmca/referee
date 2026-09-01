@@ -337,14 +337,14 @@ h2.say{ font-size:22px; }
 .pair > .act-row:first-child{ margin-top:0; }
 
 /* --- manuscript header ------------------------------------------------- */
-#ms-head{ padding:13px 40px 11px; border-bottom:1px solid var(--rule); background:var(--paper); }
+#ms-head{ padding:11px 40px 9px; border-bottom:1px solid var(--rule); background:var(--paper); }
 .ms-eyebrow{ display:flex; align-items:center; gap:12px; margin-bottom:5px; }
 .chip-fiction{
   font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase;
   color:var(--accent); border:1px solid var(--accent-line); padding:2px 6px;
 }
 .eyebrow-end{ margin-left:auto; display:flex; align-items:center; gap:12px; }
-#ms-title{ font-size:27px; line-height:1.18; font-weight:400; letter-spacing:-.006em; max-width:58ch; }
+#ms-title{ font-size:25px; line-height:1.18; font-weight:400; letter-spacing:-.006em; max-width:58ch; }
 #ms-meta{ font-size:13.5px; color:var(--ink-3); margin-top:4px; }
 
 /* --- the quiet section nav: it scrolls, it never hides ----------------- */
@@ -476,7 +476,9 @@ table.tools td.yes{ font-family:var(--mono); font-size:12px; color:var(--accent)
 }
 /* it bleeds left to the frame and stops at its own column, never under the
    controls sitting beside it */
-#verdict .sub{ margin-right:0; padding-right:16px; }
+/* the band now spans the bar, so it bleeds into BOTH gutters like every
+   other machine line rather than stopping short of a control column. */
+#verdict > .sub{ margin-right:calc(-1 * var(--gut)); padding-right:var(--gut); }
 .rec-group{ display:flex; border:1px solid var(--rule-2); }
 .rec-group button{ font-size:13.5px; padding:6px 12px; color:var(--ink-2); border-right:1px solid var(--rule-2); }
 .rec-group button:last-child{ border-right:0; }
@@ -802,4 +804,161 @@ button.chip-refusal:hover{ border-color:var(--accent); background:var(--accent-w
   #mount-main{ grid-template-columns:262px minmax(0,1fr); }
   [data-bind="webmcp-band"],.notice{ padding-left:16px; padding-right:16px; }
   [data-bind="webmcp-band"] .say,.notice .say{ font-size:13px; }
+}
+
+/* ===========================================================================
+   DENSITY CALIBRATION — one focal point per state.
+   No new colour, no new family, no new tonal step: every rule below reuses
+   --paper / --paper-sunk / --accent / --accent-wash and the .pair / .say / .sub
+   coupling already declared above. What changes is WEIGHT and WHAT IS PRESENT,
+   which is the only thing a tired reader on submission one hundred can act on.
+   =========================================================================== */
+
+/* --- STATE 1: nothing open. The sheet carries ONE object. ---------------- */
+/* Findings, the record and the tools table are real and bound at all times;
+   before a manuscript is open they are six section heads of equal weight
+   competing with the invitation, so they wait. One click brings them back. */
+#desk-body[data-desk-state="empty"] #sec-claim,
+#desk-body[data-desk-state="empty"] #sec-record,
+#desk-body[data-desk-state="empty"] #sec-tools,
+#desk-body[data-desk-state="empty"] #sec-honesty{ display:none; }
+
+/* the invitation, set as the only thing on the sheet */
+#desk-body[data-desk-state="empty"]{ display:grid; align-content:center; padding-bottom:64px; }
+/* the wrapper takes no width cap: the machine band under the invitation has
+   to run out into both gutters like every other band on the sheet, or it
+   acquires a vertical edge and reads as a card. The sentence above it is
+   capped instead. */
+#desk-body[data-desk-state="empty"] [data-bind="desk-empty"]{
+  padding-top:0; max-width:none;
+}
+#desk-body[data-desk-state="empty"] [data-bind="desk-empty"] .say{
+  font-size:33px; line-height:1.16; letter-spacing:-.012em;
+  color:var(--ink); max-width:19ch;
+}
+/* the fact underneath the invitation is the thesis of the whole build, so at
+   this one moment the machine register is set to be READ, not skimmed past */
+#desk-body[data-desk-state="empty"] [data-bind="desk-empty"] .sub{
+  font-size:14.5px; line-height:1.62; color:var(--ink-2);
+  background:var(--paper-sunk);
+  margin:18px calc(-1 * var(--gut)) 0;
+  padding:11px var(--gut) 12px;
+  max-width:none;
+}
+#desk-body[data-desk-state="empty"] .empty-action{
+  margin-top:20px; font-size:16.5px; border-bottom-width:2px; padding-bottom:2px;
+}
+
+/* --- STATE 2: a manuscript is open. The enforcement is the loud part. ---- */
+/* The blinding block is the single frame that explains this project without
+   audio. It gets the accent edge every other enforcement mark on the page
+   already uses, so a stranger can point at it. */
+#desk-body[data-desk-state="open"] [data-bind="identity-block"]{
+  border-left:3px solid var(--accent);
+  padding:2px 0 2px 15px;
+  margin-left:-18px;
+}
+/* the hatch is the deliberate absence; give it enough body to read as one */
+.wf__void{ border:1px solid var(--rule-2); }
+.wf{ gap:7px; }
+
+/* HUMAN ONLY sits beside the control it governs, so it must not be the
+   quietest thing in the row it is in */
+.act-row,.eyebrow-end,.rec-actions{ align-items:center; }
+
+/* the pinned verdict is the human-only decision; its chip carries the rule */
+#verdict .human-key{ font-size:11.5px; }
+
+/* --- the WebMCP band is a browser caveat, not the product ---------------- */
+/* It is required to be visible and it stays visible, but it is a condition of
+   the machine and not an argument, so it reads as one machine line rather than
+   as a headline with a button beside it. */
+[data-bind="webmcp-band"]{ padding:6px 20px 7px; gap:12px; }
+[data-bind="webmcp-band"] .say{
+  font-size:12.5px; font-family:var(--mono); color:var(--ink-2);
+  letter-spacing:.01em; flex:0 1 auto; max-width:none;
+}
+[data-bind="webmcp-band"] .m{ font-size:11.5px; }
+
+/* The head collapses to nothing with nothing open, but it MUST stay a grid
+   item: .reading declares three rows, and display:none on this one re-places
+   the desk into the auto track and hands the 1fr to the verdict bar, which
+   then floats in mid-page. Its two children are hidden individually instead. */
+.reading-head[data-head-state="empty"]{ min-height:0; }
+
+/* the status bar carries counts at both ends; they may clip, but they may
+   never touch — a collided pair reads as a rendering fault, not as a limit */
+#status{ column-gap:16px; }
+
+/* The band states a browser condition in one line and stops. NOTHING in it is
+   allowed to be unshrinkable: the copy is swapped per WebMCP phase, and a
+   nowrap sentence that cannot shrink would widen the FRAME for whichever phase
+   happened to have the longest string — a horizontal scrollbar for one frame,
+   on camera. Both text runs shrink and clip instead. */
+/* The band WRAPS, because webmcp.failures is a flex:1 0 100% list that must be
+   able to drop onto its own line. Pinning the band to nowrap traps that list
+   on the main row where its unshrinkable 100% basis is ADDED to the row, and
+   the frame goes to 1407px for the second or two the failures are on screen
+   during boot — a horizontal scrollbar nobody would catch in a settled-state
+   check. The one line is bought instead by giving the two text runs a small
+   flex-basis: they never force a wrap, they grow to fill, and they clip. */
+[data-bind="webmcp-band"]{ flex-wrap:wrap; min-width:0; }
+[data-bind="webmcp-band"] > *{ min-width:0; }
+[data-bind="webmcp-band"] .say{
+  flex:0 1 auto; min-width:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+[data-bind="webmcp-band"] .m{
+  flex:1 1 12ch; min-width:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+/* and the failures list can never be wider than the band it sits in */
+[data-bind="webmcp-failures"]{ flex:1 0 100%; min-width:0; max-width:100%; }
+
+/* the rubric caption is chrome beside a HUMAN ONLY chip, not a machine record */
+.rubric-sub .m{ font-size:11.5px; line-height:1.45; }
+
+/* --- the pinned bar, once a refusal has happened ------------------------- */
+/* The bar is one sentence and one control cluster in an `auto` track. When a
+   refusal adds the stamp and the blocked-attempt chip to that cluster, `auto`
+   takes the width it asks for and leaves the sentence in a ~110px gutter, four
+   words tall. The sentence gets a floor and the cluster wraps instead — the
+   sentence is the thing a stranger reads, so it is the thing that keeps its
+   line. */
+/* flat bar: sentence + controls on row 1, the machine band full width on
+   row 2, the refusal alarm on row 3. Rows 2 and 3 collapse when empty. */
+#verdict{
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-rows:auto auto auto;
+  column-gap:20px; row-gap:0; align-items:center;
+}
+#verdict > .say{ grid-column:1; grid-row:1; }
+#verdict > #verdict-row{ grid-column:2; grid-row:1; }
+#verdict > .sub{ grid-column:1 / -1; grid-row:2; }
+#verdict > .verdict-alarm{ grid-column:1 / -1; grid-row:3; }
+/* the cluster is the controls and nothing else, and it never wraps: a second
+   control row would push the sentence off its own line. */
+#verdict-row{ flex-wrap:nowrap; }
+/* the notice and its chip share one line; the wrapper collapses to nothing
+   while both are empty, so the bar costs nothing until the page refuses. */
+.verdict-alarm{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.verdict-alarm:empty{ display:none; }
+#verdict [data-bind="verdict-blocked"]{ margin-top:7px; flex:1 1 22ch; min-width:0; }
+[data-bind="verdict-blocked-chip"]{ display:inline-flex; align-items:center; margin-top:7px; flex:0 0 auto; }
+[data-bind="verdict-blocked-chip"][hidden]{ display:none !important; }
+@media (max-width:1180px), (max-height:720px){
+  #verdict{ gap:14px; }
+}
+
+/* --- short viewports: the alarm says it once ----------------------------- */
+/* The assertive notice and the refusal chip are the same event twice — one for
+   a screen reader, one for the eye. On a short frame the pinned bar was taking
+   163px of 640 and leaving the reading column 204px, so the notice keeps its
+   announcement and gives up its pixels to the chip, which carries the same fact
+   visually and is the louder of the two. Nothing is removed from the a11y tree. */
+@media (max-height:720px){
+  #verdict [data-bind="verdict-blocked"]:not(:empty){
+    position:absolute; width:1px; height:1px; margin:0;
+    overflow:hidden; clip-path:inset(50%); white-space:nowrap;
+  }
 }

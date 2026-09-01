@@ -41,7 +41,6 @@ export function buildVerdict(root, handlers) {
   bar.id = 'verdict';
   attrs(bar, { 'data-bind': 'verdict-bar' });
 
-  const left = el('div');
   const say = el('p', 'say');
   attrs(say, { 'data-bind-local': 'verdict-said' });
   const sub = el('p', 'sub');
@@ -52,14 +51,24 @@ export function buildVerdict(root, handlers) {
   const blocked = el('p', 'm');
   attrs(blocked, { 'data-bind': 'verdict-blocked' });
 
-  append(left, say, sub, blocked);
+  // verdict.blockedChip — persistent, and clicking it filters the record.
+  // It sits with the SENTENCE, not with the controls. In the control cluster it
+  // is a fifth item in an auto-sized track: the stamp and the count take the
+  // width they ask for, the sentence is left in a ~110px gutter four words
+  // tall, and the bar triples in height the moment the page refuses anything —
+  // which is precisely the moment it most needs to be readable. Beside the
+  // sentence it reads as what it is, a fact about this review.
+  const chip = el('span');
+  attrs(chip, { 'data-bind': 'verdict-blocked-chip', hidden: true });
+
+  // The assertive notice and the chip are the same event said twice — once for
+  // a screen reader, once for the eye. They share a line so the refusal costs
+  // the pinned bar one row rather than two.
+  const alarm = el('div', 'verdict-alarm');
+  append(alarm, blocked, chip);
 
   const row = el('div');
   row.id = 'verdict-row';
-
-  // verdict.blockedChip — persistent, and clicking it filters the record.
-  const chip = el('span');
-  attrs(chip, { 'data-bind': 'verdict-blocked-chip', hidden: true });
 
   const group = el('div', 'rec-group');
   attrs(group, { role: 'radiogroup', 'aria-label': 'Your recommendation' });
@@ -76,8 +85,14 @@ export function buildVerdict(root, handlers) {
   attrs(commit, { 'data-action': 'open-commit' });
   commit.addEventListener('click', () => handlers.openCommit());
 
-  append(row, humanKey(), chip, group, commit);
-  append(bar, left, row);
+  append(row, humanKey(), group, commit);
+
+  /* The bar is laid out FLAT, not as a left block beside a control block. The
+     machine line is a full-width band like every other .sub on this page: in a
+     column beside the controls it had ~400px, wrapped to three lines, and made
+     the pinned bar taller than the spread it is pinned beneath. Flat, it is one
+     line, and the grid puts the sentence and the controls on the row above. */
+  append(bar, say, row, sub, alarm);
   append(root, bar);
   return root;
 }
