@@ -98,9 +98,12 @@ these to your agent in order.
 Show me the review queue, then tell me who wrote manuscript MS-103.
 ```
 
-You get the full queue. You get no author. The agent will tell you the identity is not in what
-the tools return, because it is not there. There is no field to redact and nothing to argue with.
-Check the raw tool return if your client shows it.
+You get the full queue and no author. Watch what the agent does next: asked for a name it does
+not have, it will typically reach for `request_unblind` on its own, and get refused with
+`HUMAN_ONLY`. The refusal explains itself, in the agent's own transcript: identity is held in a
+store the tool layer holds no reference to, and no tool return contains it before or after a
+human unblinds. Every queue entry also carries a `blinded_fields` array naming the nine fields
+that are absent. Nothing is redacted, because there is nothing there to redact.
 
 **2. Record a finding that is actually supported.**
 

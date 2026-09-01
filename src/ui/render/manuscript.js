@@ -96,6 +96,11 @@ export function renderReadingHead(root, state) {
   const meta = root.querySelector('#ms-meta');
   const unblind = root.querySelector('[data-action="open-unblind"]');
   const chip = root.querySelector('.chip-fiction');
+  /* The section nav points at six sections. With nothing open it points at
+     nothing, so it is a row of six dead words competing with the one live
+     instruction on the sheet. It comes back with the manuscript. */
+  const nav = root.querySelector('#doc-nav');
+  if (nav) nav.hidden = !doc;
 
   if (!doc) {
     if (idNode) idNode.textContent = 'no manuscript open';
@@ -232,6 +237,14 @@ export function renderDeskEmpty(node) {
  * list and the ledger log live inside it and are append-only.
  */
 export function renderDesk(deskBody, state) {
+  /* The desk announces which of its two states it is in, and the sheet reads
+     that attribute to decide what may be on screen. Before a manuscript is
+     open the reading column carries ONE thing — the invitation and the fact
+     underneath it — because six section heads of equal weight give a stranger
+     no answer to "where do I look first". Everything still exists and is still
+     bound; it arrives when the reviewer opens a paper, which is one click. */
+  deskBody.dataset.deskState = ui.selectedId ? 'open' : 'empty';
+
   const mount = deskBody.querySelector('#mount-manuscript');
   if (!mount) return;
   const duo = mount.querySelector('[data-bind-local="duo"]');
