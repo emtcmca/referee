@@ -53,15 +53,52 @@ function setToolStatus(text) {
 }
 
 async function boot() {
-  /* ---- 1. State ------------------------------------------------------
+  /* ---- 1. The adversarial layer — first, and unconditionally -----------
+     capabilities.js holds `verifyQuote` / `sanitizeManuscript` / `getAgentText`
+     as injected slots that FAIL CLOSED when unwired: verifyQuote returns
+     INTERNAL and no score, so an unwired build refuses every finding rather
+     than accepting unverified ones. Failing closed is correct; shipping closed
+     is not.
+
+     ORDER IS LOAD-BEARING, twice over, and both were shipped bugs:
+
+     (a) It must not sit behind the WebMCP check. An earlier version installed
+         it inside the agent branch, after the early return for browsers with no
+         model context — so in any browser without the flag the sanitizer never
+         wired, "what was taken out" had nothing to show, and the split-screen
+         reveal was dead. The sanitizer serves the HUMAN side too; whether an
+         agent is present has nothing to do with whether the page can read its
+         own corpus.
+
+     (b) It must come before loadState(). The render layer paints its
+         evidence-gate banner from adversarialLayerInstalled() and re-renders on
+         state:loaded. Wiring after that event means the banner keeps reporting
+         a gate that is, by then, actually wired. */
+  const caps = await optional('./core/capabilities.js');
+  const sanitize = await optional('./sanitize/index.js');
+  const verify = await optional('./verify/index.js');
+  const wired = caps?.installAdversarialLayer?.({
+    verifyQuote: verify?.verifyQuote,
+    sanitizeManuscript: sanitize?.sanitizeManuscript,
+    getAgentText: sanitize?.getAgentText
+  }) ?? false;
+  if (!wired) {
+    console.error('[referee] adversarial layer not installed — the evidence gate ' +
+                  'is failing closed and every finding will refuse.');
+  }
+
+  /* ---- 2. State ------------------------------------------------------
      Persistence lives entirely in core/state.js. There is no ui/persist.js:
      src/ui/** may import identity, so a core module importing from there would
      reach identity transitively — and INVISIBLY, because the blinding guard
-     excludes src/ui/ from its walk. Dependency direction is always ui -> core. */
+     excludes src/ui/ from its walk. Dependency direction is always ui -> core.
+
+     loadState() emits state:loaded, which drives a full re-render. It runs
+     AFTER the wiring above so that render sees the wired gate. */
   const stateMod = await optional('./core/state.js');
   const state = stateMod?.loadState?.() ?? null;
 
-  /* ---- 2. The human side --------------------------------------------
+  /* ---- 3. The human side --------------------------------------------
      index.html loads src/ui/render/index.js BEFORE this file. That module owns
      all rendering and installs the shipped corpus, so loadState() above hashes
      the real text rather than corpus.stub.js.
@@ -71,7 +108,7 @@ async function boot() {
      silently rendered nothing and nothing failed loudly. Identity is reached
      only from the render layer, which is allowed to see it. */
 
-  /* ---- 3. The agent side -------------------------------------------- */
+  /* ---- 4. The agent side -------------------------------------------- */
   const mc = detectModelContext();
   if (!mc) {
     const absent = el('webmcp-absent');
@@ -86,27 +123,7 @@ async function boot() {
     return;
   }
 
-  const caps = await optional('./core/capabilities.js');
-
-  /* ---- 3a. Install the adversarial layer BEFORE any tool can run ------
-     capabilities.js holds `verifyQuote` / `sanitizeManuscript` / `getAgentText`
-     as injected slots that FAIL CLOSED when unwired: verifyQuote returns
-     INTERNAL and no score, so an unwired build refuses every finding rather
-     than accepting unverified ones. Failing closed is correct, but shipping
-     closed is not — wire it here, and surface it if the wiring did not take. */
-  const sanitize = await optional('./sanitize/index.js');
-  const verify = await optional('./verify/index.js');
-  const wired = caps?.installAdversarialLayer?.({
-    verifyQuote: verify?.verifyQuote,
-    sanitizeManuscript: sanitize?.sanitizeManuscript,
-    getAgentText: sanitize?.getAgentText
-  }) ?? false;
-  if (!wired) {
-    console.error('[referee] adversarial layer not installed — the evidence gate ' +
-                  'is failing closed and every finding will refuse.');
-  }
-
-  /* ---- 3b. Capabilities ----------------------------------------------
+  /* ---- 4a. Capabilities ----------------------------------------------
      `createCapabilities(overrides)` takes OVERRIDES, not session state. An
      earlier version passed `{ state }`, which is not a capability key.
      The object has no path to identity, and that is what makes blinding
