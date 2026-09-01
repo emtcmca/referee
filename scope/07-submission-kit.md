@@ -14,36 +14,55 @@ in the page. No adoption, traction, benchmark, or efficacy numbers appear anywhe
 
 ## 1. Video shot list
 
-**Target runtime 2:44. Hard ceiling 3:00. Margin 16 seconds.**
+**Target runtime 2:38. Hard ceiling 3:00. Margin 22 seconds.**
 
 ### Why this order
 
-Judges may score on the video alone, and some will stop early. The three enforcement claims are
-see, claim, decide, but that isn't the right screen order. Shot 3 is the strongest thing in the
-project: a tool call getting refused on camera, with a reason, then succeeding on the retry. It's
-the only beat that shows the page overruling the agent in one continuous motion, so it lands at
-0:34 and finishes by 1:00. The injection reveal follows immediately, because it's the beat that
-explains why anyone should care. **A judge who stops at 90 seconds has seen the refusal, the
-retry, and the split-screen.**
+**Reworked 2026-09-01 against the organizers' own guidance**, which is explicit: *show the project
+working in the first 10 to 15 seconds, skip intros and title screens, show the agent actually
+using your tools and make it the centerpiece, and use on-screen text to make a point fast instead
+of saying it out loud.*
 
-Everything after 1:24 is the coherence argument: the human doing things the agent can't, the
-recommendation gate, and the ledger. That's Execution, and it's worth less if a judge bails, so
-it goes second.
+The previous cut opened on a static room with the thesis narrated over it for sixteen seconds.
+That is the intro they told us not to make. It also pushed the refusal to 0:34 and the injection
+reveal to 1:00, so a judge who stopped at a minute had seen neither.
 
-Narration budget is roughly 2.2 words per second. Every line below is held under that.
+This cut has **no title card and no establishing shot.** It opens mid-tool-call, with software
+already running. The thesis appears as on-screen text over live action rather than being read
+aloud, which buys back about ten seconds and respects the guidance in the same move.
+
+The two strongest beats now both land inside the first minute:
+
+- **the refusal and the recovery finish at 0:42**
+- **the injection split-screen finishes at 1:08**
+
+A judge who stops at one minute has seen the page overrule the agent and has seen an attack
+neutralized. That is the whole argument. Everything after 1:08 is the coherence case, which is
+worth less if they bail, so it goes second.
+
+Narration runs at roughly 2.2 words per second and every line below is held under its budget.
+Silence is allowed. Do not pad a shot to fill it.
 
 | Timecode | On-screen action | Narration (exact) | What it proves to a judge |
 |---|---|---|---|
-| 0:00–0:16 | Review room loaded, queue of 12 manuscripts visible, agent panel docked right. Cursor still. | "A page can enforce things an agent can't enforce for itself: what it may see, what it may claim, and what it may decide. This is a double-blind peer review room, and it enforces all three." | Thesis stated in the first sentence. Creativity and Ambition, immediately. |
-| 0:16–0:34 | Agent calls `get_review_state`, then `read_manuscript`. Tool returns render in the panel. Presenter points at where the author field would be: it isn't there. | "The agent reads a manuscript through the page's tools. There's no author name in the return, no affiliation, no acknowledgments. Not masked. Those fields don't exist in what the tool hands back." | WebMCP Leverage. Structural absence rather than redaction is a design decision a judge can see in the raw return. |
-| 0:34–1:00 | Agent calls `assert_finding` with a quote. Panel flashes REFUSED with the reason. Agent calls `check_claim`, gets a verify result, calls `assert_finding` again, accepted. Ledger rows appear for both. | "Now it makes a claim. The quote it cited isn't in the paper, so the page refuses the finding and says why. The agent checks its next quote against the source first, then asserts again. That one verifies, so it lands. Both the refusal and the accepted finding are in the log." | The headline beat. Execution and WebMCP Leverage together: an enforcement path, a recovery path, and an audit trail in 26 seconds. |
-| 1:00–1:24 | Open the injected manuscript. Split-screen: left pane shows what the page received including the hidden instruction, right pane shows what the agent received. Presenter highlights the missing block. | "Three of these manuscripts carry hidden instructions aimed at a reviewer's AI assistant. That's a real thing authors did to preprints in 2025. Left is what the page received. Right is what the agent received. The page took the instruction out before the agent saw any text, and it shows the human both halves." | Potential Impact. A named real failure, a specific mechanism against it, and the human kept in the loop. |
-| 1:24–1:40 | Agent calls `request_unblind`. Denied response renders. Ledger row appears, timestamped, carrying the agent's stated reason. | "The agent asks to see who wrote it. The page says no. That request is now a permanent row in the log, with the reason it gave, which is something an editor would want to know." | The refusal isn't a dead end, it's evidence. Shows the ledger doing work rather than decorating. |
-| 1:40–1:52 | Human clicks unblind, types a reason, confirms. Identity appears in the human pane only. Agent panel unchanged. | "The human can unblind, with a reason on the record. The agent's view doesn't change. Same room, two different sets of permissions." | Asymmetric authority. The boundary is per-participant, not global. |
-| 1:52–2:03 | Human adds an off-paper note (prior work the agent has no access to) into the review. | "The human adds something the agent couldn't have: a paper this one overlaps with, that isn't in the corpus at all." | Human and agent contribute different things. Answers the "what can they do together" prompt directly. |
-| 2:03–2:18 | Human drags `NOVELTY` from 30 to 50 (the full scripted move is `{50, 25, 10, 15}`). Scores recompute, slate visibly reorders: **the top two swap** — MS-101 8.65 → 8.75 passes MS-102 8.70 → 8.50 — and **MS-103 climbs from rank 7 to rank 3** at 7.05. | "Reviewers weigh criteria differently. Retune the weights and the slate reorders against the same verified evidence. The paper that was seventh is now third. Nothing gets re-argued, the evidence just gets re-weighted." | Execution. Product depth rather than demo depth. |
-| 2:18–2:32 | Agent calls `submit_recommendation`. REFUSED. Human selects the recommendation and commits it. | "Last, the agent tries to submit a recommendation. It can't. That decision is the human's, and the page is what makes that true, not an instruction we wrote in a prompt." | The decide claim, closed. The strongest architectural line in the project. |
-| 2:32–2:44 | Full-screen ledger. Scroll top to bottom: every call, accepted and refused, in order. Hold the last frame with the repo URL on screen. | "Every call is in the ledger, including the three the page turned down. That's the whole idea. The rule doesn't live in the agent. It lives in the page." | Closing proof of Execution. Ends on the thesis, flat. |
+| **0:00–0:14** | **Cold open, already in motion.** No title card. The agent is mid-call: `read_manuscript` returns and the payload renders in the panel as the shot starts. Cursor moves to the return and rests where the author field would be. **On-screen text, three beats, over live action:** `what it may see` · `what it may claim` · `what it may decide` | "This is a peer review room. The agent reads a manuscript through the page's own tools, and there's no author name in what comes back. Not hidden. Absent." | Working software in frame at second zero. WebMCP Leverage immediately, and structural absence rather than redaction is visible in the raw return. |
+| **0:14–0:42** | Agent calls `assert_finding` with a fabricated quote. Panel renders **REFUSED BY THE PAGE** with `EVIDENCE_NOT_FOUND`. Agent calls `check_claim`, gets a verify result, calls `assert_finding` again, accepted. Two ledger rows appear. | "Now it makes a claim. The quote it cited isn't in the paper, so the page refuses the finding and says why. The agent checks its next quote against the source first, then asserts again. That one verifies, so it lands. Both the refusal and the accepted finding are in the log." | The headline beat, now 20 seconds earlier. An enforcement path, a recovery path, and an audit trail in one continuous motion. |
+| **0:42–1:08** | Open MS-102. Split-screen: left is what the page received including the hidden instruction, right is what the agent received. Pager to **2 of 2** so both neutralized spans are on camera. | "Three of these manuscripts carry hidden instructions aimed at a reviewer's AI assistant. Left is what the page received. Right is what the agent received. The page took the instruction out before the agent saw any text, and it shows the human both halves." | Potential Impact. A named failure mode, a specific mechanism against it, and the human kept in the loop. |
+| **1:08–1:24** | Agent calls `request_unblind`. Denial renders with `HUMAN_ONLY`. Ledger row appears, timestamped, carrying the agent's stated reason. | "The agent asks to see who wrote it. The page says no, and that request becomes a permanent row in the log, with the reason it gave." | The refusal is evidence, not a dead end. The ledger doing work rather than decorating. |
+| **1:24–1:40** | Human clicks unblind, types a reason, confirms. Identity appears in the human pane only. Agent panel unchanged, and the card says so. | "The human can unblind, with a reason on the record. The agent's view doesn't change. Same room, two different sets of permissions." | Asymmetric authority. The boundary is per-participant, not global. |
+| **1:40–1:52** | Human adds an off-paper note: prior work the agent has no access to. | "The human adds something the agent couldn't have: a paper this one overlaps with, that isn't in the corpus." | Human and agent contribute different things. Answers the "what can they do together" prompt head on. |
+| **1:52–2:08** | Human drags `NOVELTY` 30 → 50, the scripted move to `{50, 25, 10, 15}`. Slate reorders: **top two swap**, and **MS-103 climbs rank 7 → 3**, crossing up through the accept cut. | "Reviewers weigh criteria differently. Retune the weights and the slate reorders against the same verified evidence. The paper that was seventh is now third." | Execution. Product depth rather than demo depth. |
+| **2:08–2:24** | Agent calls `submit_recommendation`. **REFUSED**, `REQUIRES_HUMAN`. Human selects a recommendation and commits it. | "The agent tries to submit a recommendation. It can't. That decision is the human's, and the page is what makes that true, not an instruction in a prompt." | The decide claim, closed. The strongest architectural line in the project. |
+| **2:24–2:38** | Full-screen ledger. Scroll top to bottom: every call, accepted and refused, in order. Hold the last frame with the repo URL on screen. | "Every call is in the ledger, including the ones the page turned down. The rule doesn't live in the agent. It lives in the page." | Closing proof of Execution. Ends on the thesis, flat. |
+
+### Two notes on the opening
+
+**The on-screen text replaces narration, it does not accompany it.** Do not read the three beats
+aloud while they appear. The organizers specifically recommend on-screen text as the faster
+channel, and saying the same words simultaneously wastes the seconds it was meant to save.
+
+**The cold open needs the page already warm.** The first frame must show a rendered tool return,
+not a page mid-load. Preload, run the call once off-camera, reset the ledger, then record.
 
 ### Recording checklist
 
@@ -73,7 +92,7 @@ Narration budget is roughly 2.2 words per second. Every line below is held under
 - [ ] The REFUSED state doesn't render clearly enough to read in one pass.
 - [ ] The split-screen difference isn't obvious without narration telling the viewer where to look.
 - [ ] The slate doesn't visibly reorder in shot 8.
-- [ ] Rough cut lands over 2:50. Cut shot 7 first, then shot 6. Never cut shots 3, 4, or 9.
+- [ ] Rough cut lands over 2:50. Cut the off-paper note (1:40) first, then the human unblind (1:24). NEVER cut the cold open, the refusal, the split-screen, or the ledger close.
 - [ ] Any real name, real email, or real institution appears anywhere on screen. The manuscripts are fictional and everything visible has to stay that way.
 
 **Export**

@@ -1,8 +1,8 @@
 # Environment Check — Task 0
 
-**Status:** `[FILL: NOT RUN / PASS / FAIL]`
-**Date run:** `[FILL: YYYY-MM-DD]`
-**URL tested:** `[FILL: deployed production URL]` — must be the deployed production URL, not
+**Status:** **PASS** in the ChatGPT desktop in-app browser, 2026-09-01. Partial in Chrome 152 (registration confirmed; no agent has driven the call rows there).
+**Date run:** 2026-09-01
+**URL tested:** https://referee-psi.vercel.app/probe — must be the deployed production URL, not
 `localhost`. Local static servers do not reproduce either target environment's agent boundary.
 
 This file is the Task 0 evidence record. It is also evidence for judges that Referee actually runs
@@ -37,7 +37,7 @@ Record which environment failed and what the agent actually received.
 
 | | Environment | Version |
 |---|---|---|
-| **A** | ChatGPT desktop, in-app browser | `[FILL: ChatGPT desktop app version + in-app browser engine/version]` — **NOT YET RUN** |
+| **A** | ChatGPT desktop, in-app browser | ChatGPT desktop app, in-app browser. **RUN 2026-09-01, all six checks green.** `[FILL: app version, from Settings > About]` |
 | **B** | Chrome 149+ with `chrome://flags/#enable-webmcp-testing` **enabled** | Chrome **152.0.0.0**, Windows NT 10.0 Win64 x64. Flag enabled, browser relaunched. |
 | **C** | Codex chat session, embedded browser view | Version not recorded. **Not an environment judges will use.** Recorded because it answered the go/no-go question first. |
 
@@ -58,16 +58,24 @@ looked right" is not an observation — paste the string the agent received, or 
 
 | # | Check | A · ChatGPT in-app | B · Chrome 152 | C · Codex session | Observed |
 |---|---|---|---|---|---|
-| **5** | **A returned `{ok:false}` refusal reaches the agent as a usable RESULT, not swallowed as an error** — **GO/NO-GO, run first** | NOT RUN | NOT RUN | **PASS** | The agent called `probe_always_refuses` and reported the full payload back, including `code`, `message`, and `retry_hint`. Not surfaced as an error, not truncated. Verbatim below. |
-| 1 | `document.modelContext` is present | NOT RUN | **PASS** | PASS | B reported `surface: document.modelContext`. The `navigator.modelContext` fallback was **not** needed, which matches its deprecation in Chrome 150. |
-| 2 | `await registerTool(...)` resolves without throwing | NOT RUN | **PASS** | PASS | All three probe tools registered under one `AbortController`. |
-| 3 | The agent discovers and calls the tool | NOT RUN | NOT RUN | **PASS** | The agent listed all three tools by name — `probe_echo`, `probe_always_refuses`, `probe_untrusted` — then called two of them. |
-| 4 | A returned JSON **string** arrives at the agent intact and readable | NOT RUN | NOT RUN | **PASS** | `probe_echo` returned `{"ok":true,"echoed":"hello","marker":"REFEREE_PROBE_OK"}`. No re-wrapping, no truncation. |
-| 6 | `annotations` are accepted without error | NOT RUN | **PASS** | PASS | `readOnlyHint` and `untrustedContentHint` sent on all three tools. Neither environment rejected the key, so the drop-annotations fallback was not exercised. |
+| **5** | **A returned `{ok:false}` refusal reaches the agent as a usable RESULT, not swallowed as an error** — **GO/NO-GO, run first** | **PASS** | NOT RUN | **PASS** | The agent called `probe_always_refuses` and reported the full payload back, including `code`, `message`, and `retry_hint`. Not surfaced as an error, not truncated. Verbatim below. |
+| 1 | `document.modelContext` is present | **PASS** | **PASS** | PASS | B reported `surface: document.modelContext`. The `navigator.modelContext` fallback was **not** needed, which matches its deprecation in Chrome 150. |
+| 2 | `await registerTool(...)` resolves without throwing | **PASS** | **PASS** | PASS | All three probe tools registered under one `AbortController`. |
+| 3 | The agent discovers and calls the tool | **PASS** | NOT RUN | **PASS** | The agent listed all three tools by name — `probe_echo`, `probe_always_refuses`, `probe_untrusted` — then called two of them. |
+| 4 | A returned JSON **string** arrives at the agent intact and readable | **PASS** | NOT RUN | **PASS** | `probe_echo` returned `{"ok":true,"echoed":"hello","marker":"REFEREE_PROBE_OK"}`. No re-wrapping, no truncation. |
+| 6 | `annotations` are accepted without error | **PASS** | **PASS** | PASS | `readOnlyHint` and `untrustedContentHint` sent on all three tools. Neither environment rejected the key, so the drop-annotations fallback was not exercised. |
 
-**Standing gap.** Rows 3, 4 and 5 are unconfirmed in **both environments judges will use**. B has
-the page loaded and the tools registered but no agent has driven it. A has not been opened. The
-architectural question is answered; the environment-parity question is not.
+**Status, 2026-09-01.** **Environment A is fully green** — all six checks, including the go/no-go,
+observed in the ChatGPT desktop in-app browser. That is the surface the Official Rules name first
+and the one a judge reaches without setting a browser flag, so it is the environment that matters
+most.
+
+**Environment B is partial.** Registration is confirmed there — `document.modelContext` present,
+`registerTool` resolving, annotations accepted — but no agent has driven rows 3, 4 or 5 in that
+browser. The residual risk is low rather than absent: two independent hosts have now handled a
+returned refusal correctly, and B has already proved the half that is browser-specific. Recorded
+as NOT RUN rather than inferred, because inferring it is exactly the move this file exists to
+prevent.
 
 **Check 6 fallback rule:** if an environment rejects the `annotations` key, drop annotations *in
 that environment* rather than failing registration. Record that it was dropped and where.
@@ -138,10 +146,22 @@ Required. A table of PASS values with no image is a claim, not evidence.
 
 ## Verdict
 
-`[FILL: GO or NO-GO, and the one-line reason.]`
+**GO.** A returned `{ok:false}` refusal reaches an agent as a readable, structured result in the
+ChatGPT desktop in-app browser, which is the surface judges reach without a flag. The premise
+holds.
 
-If NO-GO: state which of the six checks failed, in which environment, and what the agent received
-instead. Do not write "done" anywhere in this file without a pasted payload behind it.
+Scope of that verdict, stated so it is not read as wider than it is:
+
+- **Six of six green in Environment A.** Two of six confirmed in Environment B, plus registration;
+  its three call rows are NOT RUN.
+- **This tested the probe, not the application.** The probe registers three tools built to
+  exercise the boundary. Referee's seven production tools are covered by 323 automated tests and a
+  registration check that drives `registerAll` against a stub, but an end-to-end agent run against
+  the deployed application is a separate exercise and is recorded elsewhere.
+- A PASS here is a statement about these builds on this date, not about future versions.
+
+If any of this later fails: state which check, in which environment, and what the agent actually
+received. Do not write "done" anywhere in this file without a pasted payload behind it.
 
 ---
 
