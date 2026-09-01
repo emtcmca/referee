@@ -122,7 +122,7 @@ Success and refusal travel the same path and arrive the same way. That symmetry 
 **What the agent received back (Environment A · ChatGPT desktop in-app browser)**
 
 ```
-[FILL: verbatim — NOT YET RUN]
+[FILL: paste from the probe page's Copy report button, or from the agent's reply. The run happened 2026-09-01 and all six rows went green; only the verbatim text is outstanding.]
 ```
 
 **What the agent received back (Environment B)**
@@ -168,5 +168,5 @@ received. Do not write "done" anywhere in this file without a pasted payload beh
 ## Caveat that travels with any result recorded here
 
 WebMCP is an origin-trial-stage proposal and Chrome's own documentation says the API is subject to
-change. A PASS recorded on `[FILL: date]` is a statement about that date and those two builds. It
+change. A PASS recorded on 2026-09-01 is a statement about that date and those two builds. It
 is not a claim about future versions.
