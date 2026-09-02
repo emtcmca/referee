@@ -8,8 +8,30 @@
  */
 
 import { el, attrs, append, clear, mach, writeMach, DOT } from './dom.js';
-import { WEBMCP_COPY, WEBMCP_FLAG_URL, copyForNotice } from '../states.js';
+import {
+  WEBMCP_COPY, WEBMCP_FLAG_URL, copyForNotice, WEBMCP_ABSENT_STILL_AVAILABLE,
+} from '../states.js';
 import { ui } from './ui-state.js';
+
+/**
+ * THE BAND'S POSTURE, AND WHY IT CHANGED.
+ *
+ * The band is required to be visible whenever the agent side is inactive, and
+ * the sentence it carries is true, so neither is negotiable. What was wrong was
+ * its RANK. Rendered as a filled, full-bleed strip directly under the masthead,
+ * a browser caveat was the largest and highest object on the page, and the
+ * first thing a first-time reader took from four seconds of looking was "this
+ * demo is broken for me" — which is false. Six of the things this page exists
+ * to show need no agent at all; states.js has always said so in
+ * WEBMCP_ABSENT_STILL_AVAILABLE and no design had ever rendered it.
+ *
+ * So the band now leads with what the reader can do, and the failure notice
+ * follows it VERBATIM in the machine register, where every other condition of
+ * the machine on this page is already stated. Nothing is deleted, nothing is
+ * softened, and there is still no dismiss control. Only the order and the
+ * weight changed. The band keeps exactly one control, as the manifest requires.
+ */
+const CAPABILITY_LEAD = 'You can run the whole review right now — read, unblind, retune, decide.';
 
 /** Build the masthead and the two bands into #mount-header. */
 export function buildHeader(root, handlers) {
@@ -49,9 +71,16 @@ export function buildHeader(root, handlers) {
   const failures = el('ul');
   attrs(failures, { 'data-bind': 'webmcp-failures', hidden: true });
 
+  // Capability first, then the machine's own report of its condition. The
+  // aria-label names what is still available so the region announces as a
+  // status about the agent side, not as an error about the page.
+  attrs(band, {
+    'aria-description': 'Still available without an agent: '
+      + WEBMCP_ABSENT_STILL_AVAILABLE.join('. ') + '.',
+  });
   append(band,
-    el('p', 'say', WEBMCP_COPY.unavailable.band.lead),
-    mach([WEBMCP_COPY.unavailable.band.sub], 'm'),
+    el('p', 'say', CAPABILITY_LEAD),
+    mach([WEBMCP_COPY.unavailable.band.lead, DOT, WEBMCP_COPY.unavailable.band.sub], 'm'),
     copyFlag,
     failures);
 
@@ -98,8 +127,10 @@ export function renderWebmcpBand(node) {
   const sub = node.querySelector('.m');
 
   if (copy.band) {
-    if (say) say.textContent = copy.band.lead;
-    if (sub) writeMach(sub, [copy.band.sub]);
+    // The honest sentence is kept word for word; it has moved register, not
+    // meaning. See CAPABILITY_LEAD above.
+    if (say) say.textContent = CAPABILITY_LEAD;
+    if (sub) writeMach(sub, [copy.band.lead, DOT, copy.band.sub]);
   } else if (snap.phase === 'partial') {
     // Do not silently degrade partial to unavailable, and do not claim live.
     if (say) say.textContent = 'Some agent tools did not register, so part of the agent side is inactive.';

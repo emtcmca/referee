@@ -962,3 +962,77 @@ button.chip-refusal:hover{ border-color:var(--accent); background:var(--accent-w
     overflow:hidden; clip-path:inset(50%); white-space:nowrap;
   }
 }
+
+/* ===========================================================================
+   COLD-READ REPAIRS — four defects a first-time reader hit on the live build.
+   No new colour, family or tonal step: every rule below reuses tokens already
+   declared at the top of this file.
+   =========================================================================== */
+
+/* --- 1. the section nav needs a state a reader can point at -------------- */
+/* `is-here` existed but was written only by the scroll spy, so it appeared
+   only AFTER a scroll landed — and a scroll that never runs never marks
+   anything. The host now writes it on the click itself, and the mark is given
+   enough weight to read as the current tab rather than as a hover. */
+.navword{ border-bottom-width:2px; }
+.navword.is-here{ color:var(--ink); border-bottom-color:var(--accent); }
+.navword[aria-current="true"]{ color:var(--ink); border-bottom-color:var(--accent); }
+
+/* --- 3. the decision bar gives up the corner overlays land in ------------ */
+/* The one human-only gate on this page used to sit at the extreme bottom-right,
+   which is where an injected browser or platform toolbar parks itself; with one
+   on screen the Accept / Minor / Major / Reject / Commit cluster could not be
+   reached at all. The controls now lead the bar from the left, and the bar
+   holds its own space away from the bottom edge, so the corner a floating
+   widget takes carries the sentence rather than the decision. No stylesheet can
+   promise this against an arbitrary overlay — the toolbar itself has to be
+   turned off — but the target is no longer in the one place overlays always
+   land. */
+#verdict{ grid-template-columns:auto minmax(0,1fr); padding-bottom:24px; }
+#verdict > #verdict-row{ grid-column:1; grid-row:1; }
+#verdict > .say{ grid-column:2; grid-row:1; }
+
+/* --- 4. the WebMCP band is a caveat, so it is the size of a caveat ------- */
+/* It stays visible, it is not dismissible, and it carries the same true
+   sentence. What it stops doing is out-ranking the product: no fill, so it is
+   a line under the masthead rather than a full-width plate; the capability
+   sentence first, in the human register at caption size; the machine's report
+   of its own condition beside it in the machine register, where every other
+   condition on this page is already stated; one text control, not a bordered
+   button. Still exactly one control, as the manifest requires. */
+/* Both sentences WRAP rather than clip. The band was already ellipsing its own
+   instruction at 1280 with the shorter copy it used to carry — "…Open in the
+   ChatGPT desktop app's…" — because `.say` and `.m` are nowrap-and-clip in
+   here, and a line that tells a reader how to turn the agent side on must not
+   stop mid-word. Wrapped, unfilled and set two steps down in size, the band
+   costs a few pixels more height than the filled plate it replaces and a great
+   deal less attention, which was the complaint. */
+[data-bind="webmcp-band"]{
+  background:transparent;
+  padding:4px 20px 5px;
+  column-gap:11px; row-gap:0;
+  align-items:baseline;
+}
+[data-bind="webmcp-band"] .say{
+  font-family:var(--serif); font-size:13px; line-height:1.4; color:var(--ink-2);
+  letter-spacing:0; flex:0 1 auto; max-width:none;
+  white-space:normal; overflow:visible; text-overflow:clip;
+}
+[data-bind="webmcp-band"] .m{
+  font-size:11.5px; line-height:1.45; flex:1 1 26ch;
+  white-space:normal; overflow:visible; text-overflow:clip;
+}
+[data-action="copy-flag-url"]{
+  border:0; border-bottom:1px solid var(--rule-2);
+  padding:0 0 1px; color:var(--ink-3);
+}
+[data-action="copy-flag-url"]:hover{ color:var(--accent); border-bottom-color:var(--accent); }
+
+/* --- the one compaction step, matching the two already declared --------- */
+@media (max-width:1180px), (max-height:720px){
+  #verdict{ padding-bottom:17px; }
+  [data-bind="webmcp-band"]{ padding:3px 16px 4px; column-gap:9px; }
+  [data-bind="webmcp-band"] .say{ font-size:12px; }
+  [data-bind="webmcp-band"] .m{ font-size:10.5px; line-height:1.4; flex:1 1 22ch; }
+  [data-action="copy-flag-url"]{ font-size:10px; }
+}

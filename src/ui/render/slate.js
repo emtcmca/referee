@@ -331,17 +331,27 @@ export function renderSlate(list, state, selectedId, handlers) {
 
   paintTie(list, table, acceptSlots);
 
-  /* ---- INVERT and PLAY ---- */
+  /* ---- INVERT and PLAY ----
+     READ every new position, THEN write every transform. The two used to be
+     interleaved inside one loop, and a rect read after a style write forces a
+     synchronous layout of the WHOLE document — twelve rows, twelve full-page
+     layouts. That is affordable while the reading column is empty and it is not
+     affordable a moment after the column has been filled with a manuscript, its
+     findings, its ledger and the seven-tool table, which is precisely when the
+     first selection runs it. Read-all-then-write-all costs one layout. */
   const moved = [];
-  for (const node of existing) {
-    const prev = before.get(node.getAttribute('data-manuscript-id'));
-    if (!prev) continue;
-    const dy = prev.top - node.getBoundingClientRect().top;
-    if (Math.abs(dy) < 1) continue;
-    if (REDUCED_MOTION) continue;
-    node.style.transition = 'none';
-    node.style.transform = 'translateY(' + dy + 'px)';
-    moved.push(node);
+  if (!REDUCED_MOTION) {
+    const shifts = existing.map((node) => {
+      const prev = before.get(node.getAttribute('data-manuscript-id'));
+      return prev ? prev.top - node.getBoundingClientRect().top : 0;
+    });
+    existing.forEach((node, i) => {
+      const dy = shifts[i];
+      if (Math.abs(dy) < 1) return;
+      node.style.transition = 'none';
+      node.style.transform = 'translateY(' + dy + 'px)';
+      moved.push(node);
+    });
   }
 
   if (moved.length) {
@@ -367,6 +377,26 @@ export function renderSlate(list, state, selectedId, handlers) {
   }
 
   return { deltas, up, down };
+}
+
+/**
+ * Mark the selected row and nothing else.
+ *
+ * Opening a manuscript changes which row is current; it does not change the
+ * ranking, the ranks, the cut, the marks or the scores. Routing that through
+ * renderSlate() would run the whole FLIP measure/reorder/measure pass to
+ * discover that nothing moved — and it would run it at the one moment the
+ * reading column has just grown by several thousand pixels, so every forced
+ * layout in the pass is at its most expensive. Class writes only: no reads, so
+ * no layout is forced at all.
+ */
+export function markSlateSelection(list, selectedId) {
+  for (const node of list.querySelectorAll('[data-manuscript-id]')) {
+    const on = node.getAttribute('data-manuscript-id') === selectedId;
+    node.classList.toggle('is-sel', on);
+    if (on) node.setAttribute('aria-current', 'true');
+    else node.removeAttribute('aria-current');
+  }
 }
 
 function markCrossing(node, up) {
