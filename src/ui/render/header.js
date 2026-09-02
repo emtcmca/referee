@@ -7,7 +7,7 @@
  * the agent side live, which is exactly the case those three do not cover.
  */
 
-import { el, attrs, append, clear, mach, writeMach, DOT } from './dom.js';
+import { el, attrs, append, clear, mach, writeMach, icon, srOnly, DOT } from './dom.js';
 import {
   WEBMCP_COPY, WEBMCP_FLAG_URL, copyForNotice, WEBMCP_ABSENT_STILL_AVAILABLE,
 } from '../states.js';
@@ -47,6 +47,27 @@ export function buildHeader(root, handlers) {
     'Demo corpus — all 12 manuscripts, authors, and institutions are fictional.');
   fiction.id = 'fiction-banner';
 
+  // THE KEY, printed once at the top the way a map prints its key.
+  //
+  // Two marks carry the whole page: an open diamond is the assistant, a filled
+  // square is you. Printed here and then used everywhere without re-explaining
+  // — on a step in the rail, on a decided queue row, beside every control the
+  // assistant has no tool for. This is what stops an accent-coloured mark from
+  // being read as a warning: a reader who has seen the legend reads authority,
+  // not alarm.
+  const legend = el('div', 'legend');
+  attrs(legend, { 'aria-hidden': 'true' });
+  const agentMark = el('span', 'l-agent');
+  agentMark.appendChild(icon('i-dia'));
+  agentMark.appendChild(document.createTextNode('the assistant'));
+  const youMark = el('span', 'l-you');
+  youMark.appendChild(icon('i-sq'));
+  youMark.appendChild(document.createTextNode('only you'));
+  append(legend, agentMark, youMark);
+
+  const legendSpoken = srOnly('Throughout this page an open diamond marks something the '
+    + 'assistant did, and a filled square marks something only you can do.');
+
   const about = el('button', 'mast-act', 'About this build');
   about.type = 'button';
   about.addEventListener('click', () => handlers.openAbout());
@@ -57,7 +78,7 @@ export function buildHeader(root, handlers) {
   attrs(reset, { 'data-action': 'reset-session' });
   reset.addEventListener('click', () => handlers.resetSession());
 
-  append(mast, wordmark, fiction, about, reset);
+  append(mast, wordmark, fiction, legendSpoken, legend, about, reset);
 
   // ---- the WebMCP band. Authored VISIBLE; [data-webmcp="active"] hides it. ----
   const band = el('div');

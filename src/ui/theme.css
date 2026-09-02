@@ -34,11 +34,18 @@
   --paper-read: #FBF7EF;   /* the sheet you read — manuscript column          */
   --paper-sunk: #E9E1D0;   /* recessed: rubric well, rail head, stubs         */
   --paper-lift: #F7F1E4;   /* the selected row, quietly warmer than the desk  */
+  --paper-fold: #EFE7D7;   /* THE FOLD along the frame — and only that. Every
+                              ground the human alone acts on: the rubric well
+                              they retune, the bar they decide from.           */
 
   /* --- ink ---------------------------------------------------------------- */
   --ink:    #211E19;       /* the human sentence                              */
   --ink-2:  #4A4238;       /* supporting prose, secondary sentences           */
-  --ink-3:  #6B6153;       /* THE MACHINE REGISTER — deliberately quieter     */
+  --ink-3:  #695F51;       /* THE MACHINE REGISTER — deliberately quieter.
+                              Two steps darker than the inherited #6B6153: that
+                              value measured 4.666:1 on --paper-sunk, which is
+                              where every machine line on this page lives, and
+                              the floor is 4.67. Same tone, now 4.810:1.        */
 
   /* --- hairlines (no boxes; rules only where a rule means something) ------ */
   --rule:   #DDD3BF;
@@ -160,7 +167,10 @@ button{ font:inherit; color:inherit; background:none; border:0; padding:0; curso
   background:var(--paper);
 }
 
-#rubric{ padding:12px 22px 11px; border-bottom:1px solid var(--rule); background:var(--paper-sunk); }
+/* the rubric well is retuned by the human and by nobody else, so it sits on
+   the fold — the same ground the decision bar sits on, and the only two
+   grounds on this page the assistant has no tool to touch */
+#rubric{ padding:12px 22px 11px; border-bottom:1px solid var(--rule-2); background:var(--paper-fold); }
 .rubric-head h2{ font-size:15.5px; font-weight:600; }
 .rubric-sub{ display:flex; align-items:center; gap:8px; margin-bottom:7px; }
 .crit{ display:grid; grid-template-columns:60px 1fr 22px; align-items:center; gap:8px; height:19px; }
@@ -371,13 +381,21 @@ h2.say{ font-size:22px; }
 .id-val{ font-size:16px; color:var(--ink); }
 .act-row{ display:flex; align-items:center; gap:13px; margin-top:12px; }
 
-.human-key{
-  display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
-  font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.11em; text-transform:uppercase;
-  color:var(--accent); background:var(--accent-wash); padding:3px 8px;
-  border-left:3px solid var(--accent);
+/* --- ONLY YOU -------------------------------------------------------------
+   This was a filled vermilion chip reading HUMAN ONLY beside a key glyph, and
+   a cold reader took it for a lock: something disabled, something broken. It
+   is the opposite — it marks the moves that are YOURS and that the assistant
+   has no tool for. So it is set as an attribution rather than as a badge: no
+   fill, no padlock, plain words, and the SAME filled square that means "you"
+   in the masthead legend and on a decided queue row. Authority is quiet; a
+   warning is loud, and this was reading as a warning.                       */
+.only-you{
+  display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.11em; text-transform:uppercase;
+  color:var(--accent);
+  border-bottom:1px solid var(--accent); padding-bottom:1px;
 }
-.human-key svg{ width:12px; height:12px; stroke:var(--accent); fill:none; stroke-width:1.4; }
+.only-you svg{ width:8px; height:8px; fill:var(--accent); stroke:none; }
 .act{ font-size:14.5px; color:var(--accent); border-bottom:1px solid var(--accent); padding-bottom:1px; }
 .act:hover{ border-bottom-width:2px; }
 .act[disabled]{ color:var(--ink-3); border-bottom-color:var(--rule-2); cursor:default; }
@@ -470,8 +488,8 @@ table.tools td.yes{ font-family:var(--mono); font-size:12px; color:var(--accent)
 
 /* --- verdict: pinned, so the human-only decision is never off-frame --- */
 #verdict{
-  --gut:40px; background:var(--paper);
-  border-top:1px solid var(--rule); padding:10px 40px 11px;
+  --gut:40px; background:var(--paper-fold);
+  border-top:1px solid var(--rule-2); padding:10px 40px 11px;
   display:grid; grid-template-columns:minmax(0,1fr) auto; gap:26px; align-items:center;
 }
 /* it bleeds left to the frame and stops at its own column, never under the
@@ -867,7 +885,7 @@ button.chip-refusal:hover{ border-color:var(--accent); background:var(--accent-w
 .act-row,.eyebrow-end,.rec-actions{ align-items:center; }
 
 /* the pinned verdict is the human-only decision; its chip carries the rule */
-#verdict .human-key{ font-size:11.5px; }
+#verdict .only-you{ font-size:10.5px; }
 
 /* --- the WebMCP band is a browser caveat, not the product ---------------- */
 /* It is required to be visible and it stays visible, but it is a condition of
@@ -1036,3 +1054,304 @@ button.chip-refusal:hover{ border-color:var(--accent); background:var(--accent-w
   [data-bind="webmcp-band"] .m{ font-size:10.5px; line-height:1.4; flex:1 1 22ch; }
   [data-action="copy-flag-url"]{ font-size:10px; }
 }
+
+
+/* ===========================================================================
+   THE RAIL, THE LEGEND, THE DECK AND THE FOLIO
+   ---------------------------------------------------------------------------
+   Everything below repairs ONE defect: a first-time viewer landed on a working
+   application and did not know what to do. Two independent readers, same
+   result. The page already had headings, a nav and numbered stations — they
+   say what a region IS, and a seventh would not have helped, because the thing
+   a visitor has to do is not on the page at all. This product's central event
+   is an agent calling a tool, and a visitor arrives with no agent in the
+   conversation.
+
+   No new colour, family or tonal step is introduced. The single addition is
+   --paper-fold, which is a GROUND for the two things only the human may do,
+   and --ink-3 moved two steps darker because the value it inherited measured
+   4.666:1 against --paper-sunk — every machine line on this page uses that
+   pair, and the floor is 4.67.
+   =========================================================================== */
+
+/* --- the third column ---------------------------------------------------- */
+/* The rail is created by conversation.js and appended to #mount-main, because
+   index.html's mount points are not this lane's to edit. The slate gives up
+   22px and the reading column keeps 686 at 1280 — wide enough that the two-up
+   spread inside .duo still reads as a spread rather than as two gutters. */
+#mount-main{ grid-template-columns:282px minmax(0,1fr) 268px; }
+/* the queue now carries a head between the rubric and the list; the sr-only
+   status is absolutely positioned and creates no track of its own */
+#mount-queue{ grid-template-rows:auto auto minmax(0,1fr); }
+
+#rail{
+  --gut:16px;
+  border-left:1px solid var(--rule);
+  background:var(--paper);
+  min-height:0; min-width:0;
+  overflow-y:auto; overflow-x:hidden;
+  display:block;
+}
+
+.rail-head{ --gut:16px; padding:11px 16px 0; }
+.rail-head .say{ font-size:17px; line-height:1.24; letter-spacing:-.006em; max-width:none; }
+.rail-head .sub{ font-size:11.5px; line-height:1.45; }
+
+/* --- what the page says it just watched happen ---------------------------- */
+/* One sentence, replaced rather than stacked, at the moment the refusal comes
+   back. It is the payoff of the whole build, so it gets the payload ground the
+   split-screen already uses for an attack, and its contract code sits under it
+   in the machine register like every other fact on this page. */
+#rail-said:empty{ display:none; }
+.said-block{ --gut:16px; background:var(--accent-wash); padding:9px 16px 0; }
+.said-block .say{ font-size:14px; line-height:1.36; }
+.said-block .sub{ margin-top:7px; font-size:11px; }
+
+/* --- the five steps ------------------------------------------------------- */
+#rail-steps{ list-style:none; margin:0; padding:0; }
+.rstep{
+  --gut:16px;
+  padding:9px 16px 10px;
+  border-top:1px solid var(--rule);
+  border-left:2px solid transparent;
+}
+.rstep__lab{ display:flex; align-items:baseline; gap:7px; }
+.rstep__g{ flex:0 0 auto; align-self:center; line-height:0; }
+.rstep__g svg{ width:8px; height:8px; fill:none; stroke:var(--ink-3); stroke-width:1.6; }
+.rstep__n{
+  font-family:var(--mono); font-size:10px; letter-spacing:.1em; color:var(--ink-3);
+  font-variant-numeric:tabular-nums; flex:0 0 auto;
+}
+.rstep__t{ font-size:13.5px; line-height:1.3; color:var(--ink-2); min-width:0; }
+
+/* the words themselves. pre-wrap keeps the break the prompt was authored with
+   and still wraps inside a 288px column; the accent edge is the same one a
+   refusal hangs its bar on, because this is the sentence that causes one. */
+.rstep__say{
+  font-family:var(--mono); font-size:11.5px; line-height:1.52;
+  white-space:pre-wrap; word-break:break-word;
+  color:var(--ink); background:var(--paper-read);
+  border-left:2px solid var(--rule-2);
+  margin:8px 0 0; padding:8px 10px;
+}
+.rstep__act{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:7px; }
+/* the largest control in the app on purpose: it is the primary action on
+   landing, and everything else here is a reading affordance */
+.rstep__copy{
+  flex:0 0 auto; min-height:28px;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-2); border:1px solid var(--rule-2); padding:5px 14px;
+}
+.rstep__copy:hover{ border-color:var(--accent); color:var(--accent); }
+.rstep__copy[data-copied="no"]{ border-color:var(--accent); color:var(--accent); }
+.rstep__watch{ font-size:10px; line-height:1.3; min-width:0; flex:1 1 10ch; }
+
+.rstep__got{ margin-top:8px; }
+.rstep__gotsay{ font-size:13px; line-height:1.36; color:var(--ink); }
+.rstep__got .m{ display:block; margin-top:3px; font-size:10px; line-height:1.4; }
+
+/* THE THREE STATES, and none of them is reachable by clicking. A step opens
+   because the one before it really settled on the bus, and completes because
+   its own tool did. */
+.rstep[data-state="shut"] .rstep__t{ color:var(--ink-3); }
+.rstep[data-state="now"]{ border-left-color:var(--accent); background:var(--paper-lift); }
+.rstep[data-state="now"] .rstep__t{ color:var(--ink); }
+.rstep[data-state="done"] .rstep__g svg{ fill:var(--accent); stroke:none; }
+.rstep[data-state="done"] .rstep__say{ opacity:.62; }
+.rstep[data-state="done"] .rstep__watch{ color:var(--accent); }
+
+/* --- the visitor with no agent at all, which is most of them -------------- */
+/* Leads with what works. The six lines below are states.js's own list, which
+   has been true since the first build and had never been rendered anywhere.
+   They carry the filled square because every one of them is a move that is
+   yours. No control here: the masthead band already owns the one copy-the-flag
+   control the manifest allows, and a second would be one condition reported
+   twice. */
+#rail-solo{ --gut:16px; padding:12px 16px 0; border-top:1px solid var(--rule-2); }
+#rail-solo .say{ font-size:14px; line-height:1.34; }
+#rail-solo .sub{ font-size:11px; line-height:1.45; margin-top:9px; }
+.solo-list{ list-style:none; margin:8px 0 0; padding:0; }
+.solo-list li{
+  position:relative; padding-left:13px; margin-top:3px;
+  font-size:12.5px; line-height:1.36; color:var(--ink-2);
+}
+.solo-list li::before{
+  content:''; position:absolute; left:0; top:.52em;
+  width:6px; height:6px; background:var(--ink);
+}
+
+/* --- THE KEY, printed once in the masthead -------------------------------- */
+/* An open diamond is the assistant, a filled square is you. Printed the way a
+   map prints its key and then used everywhere without explanation: on a step,
+   on a decided row, beside every control the assistant has no tool for. This
+   is what stops an accent mark from reading as a warning. */
+.legend{
+  flex:0 0 auto; display:flex; align-items:center; gap:14px;
+  border-left:1px solid var(--rule-2); padding-left:14px;
+}
+.legend span{
+  display:inline-flex; align-items:center; gap:6px;
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink-2); white-space:nowrap;
+}
+.legend svg{ width:9px; height:9px; }
+.legend .l-agent svg{ fill:none; stroke:var(--ink-3); stroke-width:1.6; }
+.legend .l-you svg{ fill:var(--accent); stroke:none; }
+.legend .l-you{ color:var(--accent); }
+
+/* --- THE STANDFIRST: the three claims, above the fold --------------------- */
+/* They used to live in the About dialog. A modal nobody opens is not part of
+   the product, and a judge who never clicks About never meets the argument at
+   all. Set as a newspaper deck instead: one sentence, a rule, three columns,
+   each naming the constraint in plain words, carrying the code the page
+   actually returns, and pointing at the region that demonstrates it. */
+.triad{
+  --gut:40px;
+  background:var(--paper);
+  margin:0 calc(-1 * var(--gut)) 16px;
+  padding:9px var(--gut) 10px;
+  border-top:1px solid var(--accent-line);
+}
+.triad__lede{ font-size:16px; line-height:1.3; color:var(--ink); font-weight:400; max-width:92ch; }
+.triad__cols{
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+  margin-top:8px; padding-top:8px; border-top:1px solid var(--rule-2);
+}
+.triad__c{
+  text-align:left; display:block; width:100%;
+  padding:0 14px; border-left:1px solid var(--rule);
+}
+.triad__c:first-child{ padding-left:0; border-left:0; }
+.triad__c:last-child{ padding-right:0; }
+.triad__c b{ display:block; font-size:14px; font-weight:600; line-height:1.26; color:var(--ink); margin-bottom:3px; }
+.triad__c .tp{ display:block; font-size:12.5px; line-height:1.34; color:var(--ink-2); margin-bottom:6px; }
+.triad__c .code{
+  display:inline-block;
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.09em; color:var(--accent);
+  border-bottom:1px solid var(--accent); padding-bottom:1px;
+}
+.triad__c:hover b{ color:var(--accent); }
+.triad__c:hover .code{ border-bottom-width:2px; }
+/* The deck is the argument, so it stays on the sheet in the empty state too —
+   it is the one thing a stranger can read before choosing anything. But the
+   empty desk centres its single object, and a centred deck is no longer ABOVE
+   the fold, it is halfway down it. So with nothing open the sheet stacks from
+   the top and the invitation buys its air with a margin instead. */
+#desk-body[data-desk-state="empty"]{ align-content:start; }
+#desk-body[data-desk-state="empty"] .triad{ margin-bottom:0; }
+#desk-body[data-desk-state="empty"] [data-bind="desk-empty"]{ margin-top:52px; }
+
+/* --- QUEUE POSITION, STATED RATHER THAN INFERRED -------------------------- */
+.slate-head{
+  --gut:20px; padding:8px 20px 9px; background:var(--paper);
+  border-bottom:1px solid var(--rule);
+}
+.slate-head .say{ font-size:13px; line-height:1.34; color:var(--ink-2); }
+.slate-head .m{ display:block; margin-top:3px; font-size:10.5px; line-height:1.4; }
+
+/* a decided manuscript carries the same filled square that means "you"
+   everywhere else on this page, so the queue gains a read/unread state that
+   needs no legend of its own */
+.mark{ display:inline-flex; align-items:center; gap:5px; }
+.mark.is-you{ color:var(--ink-2); }
+.mark.is-you::before{ content:''; width:6px; height:6px; background:var(--ink); flex:0 0 auto; }
+.row.is-decided .row__title{ color:var(--ink-2); }
+
+/* --- the folio: where this sheet sits, and whether it is done ------------- */
+.folio{
+  font-family:var(--mono); font-size:10px; letter-spacing:.11em; text-transform:uppercase;
+  color:var(--ink-3); font-variant-numeric:tabular-nums; white-space:nowrap; flex:0 0 auto;
+}
+.folio b{ color:var(--ink-2); font-weight:600; }
+.folio-dec{ color:var(--accent); }
+
+/* --- the deck's third claim lands on the pinned bar ----------------------- */
+/* The decision is not a section, so there is nothing to scroll to; the bar is
+   already on screen. Marking it for a beat and moving focus into it is the
+   honest equivalent of a jump. */
+#verdict.is-pointed{ box-shadow:inset 0 0 0 2px var(--accent); }
+@media (prefers-reduced-motion:no-preference){
+  #verdict{ transition:box-shadow 180ms ease-out; }
+}
+
+/* --- one compaction step, matching the three already declared ------------- */
+@media (max-width:1180px), (max-height:720px){
+  #mount-main{ grid-template-columns:262px minmax(0,1fr) 258px; }
+  .legend{ gap:10px; padding-left:11px; }
+  .legend span{ font-size:9px; letter-spacing:.07em; }
+  .triad{ padding-top:7px; padding-bottom:8px; margin-bottom:12px; }
+  .triad__lede{ font-size:14.5px; }
+  .triad__c b{ font-size:13px; }
+  .triad__c .tp{ font-size:11.5px; }
+  .rstep{ padding:7px 14px 8px; }
+  .rstep__say{ font-size:11px; padding:7px 9px; }
+  .rail-head{ padding-top:9px; }
+  .rail-head .say{ font-size:15.5px; }
+}
+
+/* --- the reading column is 266px narrower now that the rail has a track --
+   Two runs in the manuscript head were sized for a 952px column and clip or
+   break words at 686: the eyebrow (id, chip, folio, and the ONLY YOU control
+   cluster) and the six-word section nav, which was overflow:hidden and was
+   therefore DROPPING its sixth word rather than showing it. A nav that cannot
+   reach a section is a dead control, so both wrap instead. Every child keeps
+   white-space:nowrap so the wrap happens between items and never inside a
+   word — a broken "MS-
+102" reads as a rendering fault. */
+.ms-eyebrow{ flex-wrap:wrap; row-gap:4px; column-gap:11px; }
+.ms-eyebrow > *{ flex:0 0 auto; }
+.ms-eyebrow [data-bind-local="ms-id"]{ white-space:nowrap; }
+.eyebrow-end{ flex:0 0 auto; }
+.act{ white-space:nowrap; }
+#doc-nav{ flex-wrap:wrap; row-gap:5px; column-gap:18px; overflow:visible; }
+.navword{ font-size:13.5px; }
+
+/* --- DENSITY, RE-CALIBRATED FOR THREE COLUMNS ---------------------------
+   The frame is fixed at 1280x800 and the rail took 268 of the 1280, so the
+   reading column went from 952 to 730. Four runs that fitted one line at 952
+   were spending two or three at 730 — the verdict sentence, the deck prose,
+   the manuscript title and the section nav — and between them they left the
+   manuscript itself 173px of a 728px column. Nothing is removed and no copy
+   is cut: the type comes down one step in the four places that were paying
+   for the extra rows, and the height goes back to the sheet, which is the
+   only thing on this page a reviewer actually reads at length.          */
+#verdict > .say{ font-size:15px; line-height:1.3; }
+#verdict{ padding-top:8px; }
+.triad{ padding-top:7px; padding-bottom:8px; margin-bottom:13px; }
+.triad__lede{ font-size:15px; line-height:1.28; }
+.triad__cols{ margin-top:6px; padding-top:6px; }
+.triad__c{ padding:0 12px; }
+.triad__c b{ font-size:13px; line-height:1.24; margin-bottom:2px; }
+.triad__c .tp{ font-size:11.5px; line-height:1.32; margin-bottom:5px; }
+#ms-head{ padding:8px 40px 7px; }
+#ms-title{ font-size:21px; line-height:1.16; }
+#ms-meta{ font-size:12.5px; margin-top:3px; }
+.ms-eyebrow{ margin-bottom:4px; }
+#doc-nav{ padding:6px 40px 6px; column-gap:14px; row-gap:4px; }
+.navword{ font-size:13px; }
+
+/* --- the slate column at 282 --------------------------------------------
+   The queue gave up 46px to the rail. The rubric caption and the queue head
+   were set for 328 and were spending three lines on two lines of text, which
+   pushed "Venue defaults" onto a row of its own and cost the list four rows
+   of manuscripts. Same words, one step down, and the well is one block again. */
+#rubric{ padding:9px 16px 9px; }
+.rubric-head h2{ font-size:15px; }
+.rubric-sub{ column-gap:8px; }
+.rubric-sub .m{ font-size:10.5px; line-height:1.4; }
+.rubric-foot{ margin-top:7px; column-gap:6px; }
+.reset-link{ font-size:9.5px; }
+.slate-head{ padding:7px 16px 8px; }
+.slate-head .say{ font-size:12.5px; line-height:1.3; }
+.slate-head .m{ font-size:10px; }
+
+/* --- two calls to action, at two volumes ---------------------------------
+   The empty sheet was tuned to carry ONE object, so the invitation was set at
+   33px. It is no longer the only invitation on the page: the rail now offers
+   the other half of the product, and two objects shouting at the same volume
+   is the same defect as none. The human path keeps its rank as the largest
+   thing on the sheet — a visitor who ignores the rail still gets a clean
+   product — it just stops competing for the same glance. */
+#desk-body[data-desk-state="empty"] [data-bind="desk-empty"] .say{ font-size:28px; }
+#desk-body[data-desk-state="empty"] [data-bind="desk-empty"]{ margin-top:38px; }
+.rail-head .say{ font-size:18px; }

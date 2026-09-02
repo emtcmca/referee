@@ -51,7 +51,7 @@ import {
 } from './header.js';
 import {
   buildSlate, renderRubricWeights, renderAcceptSlots, renderSlate,
-  renderSlateStatus, rebalance, markSlateSelection,
+  renderSlateStatus, rebalance, markSlateSelection, renderSlateHead,
 } from './slate.js';
 import {
   buildReadingHead, renderReadingHead, buildManuscript, renderDesk, renderDeskEmpty,
@@ -67,6 +67,10 @@ import { buildTools, HONESTY } from './tools.js';
 import { buildVerdict, renderVerdict, renderVerdictBlocked, renderVerdictBlockedChip } from './verdict.js';
 import { buildFooter, renderPulse, renderFooterStats } from './footer.js';
 import {
+  buildConversation, renderConversation, noteSettled, resetConversation, copyText,
+  copyFeedbackFor,
+} from './conversation.js';
+import {
   buildDialogs, renderSplit, linkPanes, gotoPayload, primeCommit, primeManuscriptDialogs,
 } from './dialogs.js';
 
@@ -80,6 +84,7 @@ let statusTimer = null;
 let pulse = null;
 let webmcp = null;
 let scrollGuard = null;
+let rail = null;
 const $ = (sel) => document.querySelector(sel);
 
 /**
@@ -363,11 +368,20 @@ const handlers = {
     persist(state, 'commit_recommendation');
     rebuildDerived(state);
     render('verdict.bar');
+    // A decision that is invisible in the queue is one the reviewer has to
+    // remember. The slate row gains its decided mark, the slate head counts it,
+    // and the sheet's folio stops saying "undecided".
+    renderReadingHead($('.reading-head'), state);
+    reorderSlate();
+    renderSlateHead($('#mount-queue'), state);
   },
 
   resetSession() {
     resetSession();
     resetUiState();
+    resetConversation();
+    const said = $('#rail-said');
+    if (said) clear(said);
     const log = $('#ledger-log');
     if (log) clear(log);
     renderEverything();
@@ -426,6 +440,55 @@ const handlers = {
   openAbout() {
     const dlg = $('#dlg-about');
     if (dlg) dlg.showModal();
+  },
+
+  /* ---- the rail ---------------------------------------------------------- */
+
+  /**
+   * One prompt to the clipboard. copyText() degrades through three tiers —
+   * async API, execCommand, then selecting the text in place so the reader
+   * finishes the copy with the keyboard — and the third tier is NOT a success,
+   * so the label says what actually happened rather than claiming "Copied".
+   */
+  async copyPrompt(button, text, block) {
+    const result = await copyText(text, { selectTarget: block });
+    const feedback = copyFeedbackFor(result);
+    holdLabel(button, feedback.label, 'Copy', feedback.holdMs);
+    if (button) button.setAttribute('data-copied', result.ok ? 'yes' : 'no');
+  },
+
+  /**
+   * The third claim in the deck points at the pinned bar, which lives OUTSIDE
+   * #desk-body — so scrollToSection cannot reach it, and there is nothing to
+   * scroll to anyway, because the bar is pinned and already on screen. Marking
+   * it and moving focus into it is the honest equivalent of a jump.
+   */
+  /**
+   * A claim in the deck, followed to the thing that demonstrates it.
+   *
+   * With nothing open, two of the three targets are not in the document at all
+   * — the spread is hidden and #sec-claim is display:none in the empty state —
+   * so a bare scroll would be a control that does nothing. Opening the
+   * top-ranked manuscript first is what makes the claim reachable, and it is
+   * the same move the empty desk's own action already offers.
+   */
+  gotoClaim(target) {
+    if (!ui.selectedId) handlers.openTopRanked();
+    if (target === 'verdict') { handlers.pointAtVerdict(); return; }
+    // The sections are rendered synchronously by openTopRanked above, so the
+    // node exists by now; scrollToSection lands it with no animation to stall.
+    handlers.scrollToSection(target);
+  },
+
+  pointAtVerdict() {
+    const bar = $('#verdict');
+    if (!bar) return;
+    bar.classList.remove('is-pointed');
+    void bar.offsetWidth;
+    bar.classList.add('is-pointed');
+    setTimeout(() => bar.classList.remove('is-pointed'), 1400);
+    const first = bar.querySelector('[data-recommendation]:not([disabled])');
+    if (first) first.focus();
   },
 
   rerenderNotices() { render('notice.band'); },
@@ -528,6 +591,8 @@ function renderEverything() {
   const state = getState();
   renderReadingHead($('.reading-head'), state);
   renderFooterStats($('#mount-footer'), state);
+  renderSlateHead($('#mount-queue'), state);
+  renderConversation(rail, state);
   if (binder) binder.renderAll();
   reorderSlate();
 }
@@ -617,6 +682,11 @@ function buildMarkup() {
   buildFooter($('#mount-footer'), $('#mount-tool-status'));
   buildDialogs($('#mount-split-screen'), handlers);
   linkPanes(document);
+
+  // The rail is created here rather than in the shell because index.html's
+  // mount points are not this lane's to edit. It becomes #mount-main's third
+  // grid column; theme.css declares the track.
+  rail = buildConversation($('#mount-main'), handlers);
 }
 
 function registerRenderers() {
@@ -687,6 +757,10 @@ function wireActivity() {
   refereeBus.on(EVENTS.TOOL_SETTLED, (payload) => {
     const p = payload || {};
     pulse.settled({ tool: p.name || p.tool, ok: p.outcome !== 'refused', code: p.code });
+    // The rail advances HERE and nowhere else. A step completes because its
+    // tool actually settled — there is no click path into this.
+    noteSettled(rail, getState(), p);
+    renderSlateHead($('#mount-queue'), getState());
   });
 
   refereeBus.on(EVENTS.INTEGRITY_DETECTED, () => {
@@ -753,6 +827,8 @@ function wireWebMcp() {
       render('webmcp.pill');
       render('webmcp.band');
       render('webmcp.failures');
+      // The rail's no-agent block reads ui.webmcp, so it moves with the phase.
+      renderConversation(rail, getState());
     },
   });
 
@@ -859,7 +935,7 @@ function boot() {
   // Exposed for verification and for a judge poking at the console. Read-only
   // helpers; nothing here can write a ledger row that skipped validation.
   window.referee = {
-    binder, ui, getState, handlers,
+    binder, ui, getState, handlers, rail,
     audit: () => binder.audit(),
     manifest: BINDING_POINTS,
   };

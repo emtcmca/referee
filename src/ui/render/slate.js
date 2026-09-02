@@ -13,7 +13,7 @@
  * row slides.
  */
 
-import { el, attrs, append, clear, REDUCED_MOTION } from './dom.js';
+import { el, attrs, append, clear, mach, writeMach, REDUCED_MOTION } from './dom.js';
 import { CRITERIA, DEFAULT_WEIGHTS, NEAR_TIE_EPSILON,
   ACCEPT_SLOTS_MIN, ACCEPT_SLOTS_MAX } from '../../core/constants.js';
 
@@ -38,10 +38,7 @@ export function buildSlate(root, handlers) {
   head.appendChild(el('h2', null, 'What counts, and how much'));
 
   const sub = el('div', 'rubric-sub');
-  const key = el('span', 'human-key');
-  key.appendChild(iconKey());
-  key.appendChild(document.createTextNode('Human only'));
-  append(sub, key, el('span', 'm', 'retune_rubric · weights need not total 100'));
+  append(sub, onlyYou(), el('span', 'm', 'retune_rubric · weights need not total 100'));
 
   append(rubric, head, sub);
 
@@ -100,25 +97,83 @@ export function buildSlate(root, handlers) {
   const status = el('p', 'sr-only');
   attrs(status, { 'data-bind': 'slate-status' });
 
+  // The queue's own status line. Not a binding point — the manifest is frozen
+  // at 30 — so the host calls renderSlateHead() the way it already calls
+  // renderReadingHead().
+  const queueHead = el('div', 'slate-head');
+  attrs(queueHead, { 'data-bind-local': 'slate-count' });
+  append(queueHead, el('p', 'say', 'Twelve manuscripts, ranked.'), mach([''], 'm'));
+
   const scroll = el('div');
   scroll.id = 'slate-scroll';
   const list = el('ul');
   list.id = 'slate-list';
   scroll.appendChild(list);
 
-  append(root, rubric, status, scroll);
+  append(root, rubric, queueHead, status, scroll);
   attrs(root, { role: 'navigation', 'aria-label': 'Ranked slate' });
   return root;
 }
 
-function iconKey() {
+/** The same attribution dom.js prints — the filled square, not a padlock. */
+function onlyYou() {
   const ns = 'http://www.w3.org/2000/svg';
+  const span = el('span', 'only-you');
   const svg = document.createElementNS(ns, 'svg');
   svg.setAttribute('aria-hidden', 'true');
   const use = document.createElementNS(ns, 'use');
-  use.setAttribute('href', '#i-key');
+  use.setAttribute('href', '#i-sq');
   svg.appendChild(use);
-  return svg;
+  span.appendChild(svg);
+  span.appendChild(document.createTextNode('Only you'));
+  return span;
+}
+
+/* -------------------------------------------------------------------------- */
+/* The slate head — where the queue says where you are in it                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * QUEUE POSITION, STATED RATHER THAN INFERRED.
+ *
+ * The slate showed twelve ranked rows and nothing at all about how far through
+ * them the reviewer was, so "have I decided this one?" was answered by
+ * remembering. Now it is answered by reading: a count here, a mark on the row
+ * that carries it, and a folio on the sheet itself.
+ *
+ * The count is DERIVED from state.committed on every call rather than held —
+ * the same rule refusalTallies() follows. Note that core allows exactly one
+ * commitment per session (confirmCommit refuses a second), so this reads 0 or 1
+ * today. The sentence is written to be true either way rather than to flatter
+ * the demo.
+ */
+export function renderSlateHead(root, state) {
+  const node = root && root.querySelector('[data-bind-local="slate-count"]');
+  if (!node) return;
+  const total = (state && Array.isArray(state.ranking)) ? state.ranking.length : 0;
+  const decided = decidedIds(state).size;
+  const open = Math.max(0, total - decided);
+
+  const say = node.querySelector('.say');
+  if (say) {
+    say.textContent = total
+      ? 'Twelve manuscripts, ranked. ' + decided + ' of ' + total + ' decided, '
+        + open + ' still open.'
+      : 'The slate is empty.';
+  }
+  const sub = node.querySelector('.m');
+  if (sub) {
+    writeMach(sub, ['get_review_state → queue[' + total + ']', ' · decided ',
+      { b: String(decided) }]);
+  }
+}
+
+/** Which manuscripts the reviewer has decided. One Set, read by two renderers. */
+function decidedIds(state) {
+  const out = new Set();
+  const c = state && state.committed;
+  if (c && c.manuscript_id) out.add(c.manuscript_id);
+  return out;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -172,7 +227,20 @@ function marksFor(item, state) {
 
   const unblind = ((state && state.unblinded) || []).find((u) => u.id === item.manuscript_id);
   if (unblind) out.push({ text: 'you unblinded this', accent: false });
+
+  // The decided mark carries the SAME filled square that means "you" in the
+  // masthead legend and beside every human-only control, so the queue gains a
+  // read/unread state that needs no legend of its own.
+  const c = state && state.committed;
+  if (c && c.manuscript_id === item.manuscript_id) {
+    out.push({ text: 'you decided · ' + c.recommendation, accent: false, you: true });
+  }
   return out;
+}
+
+/** One place that spells the mark classes, used by both paint paths. */
+function markClass(m) {
+  return 'mark' + (m.accent ? ' is-accent' : '') + (m.you ? ' is-you' : '');
 }
 
 function rowNode(item, rank, acceptSlots, state, selectedId, handlers) {
@@ -200,9 +268,10 @@ function rowNode(item, rank, acceptSlots, state, selectedId, handlers) {
   const marks = marksFor(item, state);
   if (marks.length) {
     const wrap = el('span', 'row__marks');
-    for (const m of marks) wrap.appendChild(el('span', 'mark' + (m.accent ? ' is-accent' : ''), m.text));
+    for (const m of marks) wrap.appendChild(el('span', markClass(m), m.text));
     button.appendChild(wrap);
   }
+  button.classList.toggle('is-decided', decidedIds(state).has(item.manuscript_id));
 
   button.setAttribute('aria-label', 'Rank ' + rank + ', '
     + (above ? 'above the accept cut' : 'below the accept cut') + '. ' + item.title
@@ -292,6 +361,7 @@ export function renderSlate(list, state, selectedId, handlers) {
          again: the tie sentence changes height, so it has to settle first ---- */
   const up = [];
   const down = [];
+  const decided = decidedIds(state);
   let deltas = 0;
 
   table.forEach((item, i) => {
@@ -308,16 +378,18 @@ export function renderSlate(list, state, selectedId, handlers) {
     else node.removeAttribute('aria-current');
     node.setAttribute('aria-label', 'Rank ' + rank + ', '
       + (above ? 'above the accept cut' : 'below the accept cut') + '. ' + item.title
-      + '. Composite ' + item.composite.toFixed(2) + '.');
+      + '. Composite ' + item.composite.toFixed(2) + '.'
+      + (decided.has(item.manuscript_id) ? ' You decided this one.' : ''));
 
     const oldMarks = node.querySelector('.row__marks');
     if (oldMarks) oldMarks.remove();
     const marks = marksFor(item, state);
     if (marks.length) {
       const wrap = el('span', 'row__marks');
-      for (const m of marks) wrap.appendChild(el('span', 'mark' + (m.accent ? ' is-accent' : ''), m.text));
+      for (const m of marks) wrap.appendChild(el('span', markClass(m), m.text));
       node.appendChild(wrap);
     }
+    node.classList.toggle('is-decided', decided.has(item.manuscript_id));
 
     if (prev) {
       if (prev.rank !== rank) deltas += 1;

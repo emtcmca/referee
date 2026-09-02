@@ -57,6 +57,11 @@ export function buildReadingHead(root, handlers) {
   attrs(msId, { 'data-bind-local': 'ms-id' });
   const fiction = el('span', 'chip-fiction', 'Fictional demo manuscript');
 
+  // The folio: where this sheet sits in the queue, and whether it is decided.
+  // Without it the only answer to "have I done this one?" was remembering.
+  const folio = el('span', 'folio');
+  attrs(folio, { 'data-bind-local': 'ms-folio' });
+
   const end = el('span', 'eyebrow-end');
   const unblind = el('button', 'act', 'Unblind for yourself…');
   unblind.type = 'button';
@@ -64,7 +69,7 @@ export function buildReadingHead(root, handlers) {
   unblind.addEventListener('click', () => handlers.openUnblind());
   append(end, humanKey(), unblind);
 
-  append(eyebrow, msId, fiction, end);
+  append(eyebrow, msId, fiction, folio, end);
 
   const title = el('h1');
   title.id = 'ms-title';
@@ -96,6 +101,7 @@ export function renderReadingHead(root, state) {
   const meta = root.querySelector('#ms-meta');
   const unblind = root.querySelector('[data-action="open-unblind"]');
   const chip = root.querySelector('.chip-fiction');
+  const folio = root.querySelector('[data-bind-local="ms-folio"]');
   /* The head is ABOUT a manuscript. With none open it was still drawing a
      title, a meta line and a disabled Unblind control, which put a second
      sentence of equal weight directly above the one on the sheet and gave the
@@ -112,11 +118,26 @@ export function renderReadingHead(root, state) {
     if (title) title.textContent = 'The slate is on the left.';
     if (meta) meta.textContent = 'Twelve fictional submissions, ranked by the rubric beside them.';
     if (chip) chip.hidden = true;
+    if (folio) folio.hidden = true;
     if (unblind) { unblind.disabled = true; unblind.textContent = 'Unblind for yourself…'; }
     return;
   }
 
   if (chip) chip.hidden = false;
+  if (folio) {
+    folio.hidden = false;
+    const table = (state && Array.isArray(state.ranking)) ? state.ranking : [];
+    const at = table.findIndex((r) => r.manuscript_id === doc.id);
+    const committed = state && state.committed;
+    const decided = committed && committed.manuscript_id === doc.id;
+    clear(folio);
+    append(folio,
+      'sheet ',
+      el('b', null, at >= 0 ? String(at + 1).padStart(2, '0') : '--'),
+      ' of ' + (table.length || 12) + ' · ',
+      el('span', decided ? 'folio-dec' : null,
+        decided ? 'decided · ' + committed.recommendation : 'undecided'));
+  }
   if (idNode) idNode.textContent = doc.id;
   if (title) title.textContent = doc.title;
   if (meta) {
@@ -138,6 +159,49 @@ export function renderReadingHead(root, state) {
 /* -------------------------------------------------------------------------- */
 /* The document sections inside #desk-body                                    */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * THE STANDFIRST — the three things the page enforces.
+ *
+ * These three claims used to live in the About dialog. A modal nobody opens is
+ * not part of the product, and a judge who never clicks About never meets the
+ * argument at all. So they are set here instead, as a newspaper deck: one
+ * sentence, a rule, three columns. Each column names the constraint in plain
+ * words, carries the contract code the page actually returns, and is itself the
+ * pointer to the region that demonstrates it.
+ *
+ * The third points at the pinned bar rather than at a section, because the
+ * decision is not a section — it is the one control the assistant was never
+ * given.
+ */
+const CLAIMS = [
+  ['What it may see',
+   'Author identity is absent from every tool return, not blanked out inside one.',
+   'HUMAN_ONLY', 'sec-see'],
+  ['What it may claim',
+   'A finding is refused unless its quote verifies against the text it was given.',
+   'EVIDENCE_NOT_FOUND', 'sec-claim'],
+  ['What it may decide',
+   'The recommendation is not one of the seven tools it was given.',
+   'REQUIRES_HUMAN', 'verdict'],
+];
+
+function buildTriad(handlers) {
+  const triad = el('div', 'triad');
+  const lede = el('h2', 'triad__lede',
+    'The page enforces three things the assistant cannot enforce for itself.');
+  const cols = el('div', 'triad__cols');
+  for (const [title, prose, code, target] of CLAIMS) {
+    const b = el('button', 'triad__c');
+    b.type = 'button';
+    attrs(b, { 'data-goto': target });
+    append(b, el('b', null, title), el('span', 'tp', prose), el('span', 'code', code));
+    b.addEventListener('click', () => handlers.gotoClaim(target));
+    cols.appendChild(b);
+  }
+  append(triad, lede, cols);
+  return triad;
+}
 
 export function buildManuscript(root, handlers) {
   clear(root);
@@ -224,7 +288,7 @@ export function buildManuscript(root, handlers) {
   attrs(prose, { 'data-bind-local': 'prose' });
   append(text, textHead, prose);
 
-  append(root, empty, duo, text);
+  append(root, buildTriad(handlers), empty, duo, text);
   return root;
 }
 

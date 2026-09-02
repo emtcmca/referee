@@ -95,11 +95,21 @@ export function stamp(label) {
   return el('span', 'stamp', label || 'Refused by the page');
 }
 
-/** The human-only key, with the design's inline symbol. */
+/**
+ * ONLY YOU — the attribution that marks a move the assistant has no tool for.
+ *
+ * This was a filled vermilion chip reading HUMAN ONLY beside a key glyph, and a
+ * cold reader took the key for a padlock: something disabled, something broken.
+ * It is the opposite. It marks the moves that are YOURS. So it is set as an
+ * attribution rather than as a badge — no fill, no padlock, plain words,
+ * underlined — and it carries the same filled square that means "you" in the
+ * masthead legend and on a decided queue row. Authority is quiet; a warning is
+ * loud, and this was being read as a warning.
+ */
 export function humanKey(label) {
-  const span = el('span', 'human-key');
-  span.appendChild(icon('i-key'));
-  span.appendChild(document.createTextNode(label || 'Human only'));
+  const span = el('span', 'only-you');
+  span.appendChild(icon('i-sq'));
+  span.appendChild(document.createTextNode(label || 'Only you'));
   return span;
 }
 
