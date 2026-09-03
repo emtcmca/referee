@@ -425,6 +425,12 @@ export function createPulse(options) {
 /**
  * Subscribes to the bus and produces view rows. IT DOES NOT WRITE.
  *
+ * NOT WIRED IN THIS BUILD, DELIBERATELY. `ui/render/index.js` renders rows,
+ * refusal tallies and findings out of `state.ledger` directly, and takes only
+ * `createPulse` from this module. This factory is kept because its guard below
+ * is the executable record of the ownership ruling, and its tests are what
+ * prove that ruling still holds. Read it before wiring anything to the bus.
+ *
  * The ledger writes and emits; the feed renders. Every event this subscribes to
  * is emitted BY the writer, after the row exists, so a write from any handler
  * below would re-enter the writer that woke it and never stop. See the ownership

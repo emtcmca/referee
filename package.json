@@ -6,13 +6,13 @@
   "description": "Referee — a double-blind academic peer-review room where the page, not a prompt, is the boundary between a browser AI agent and untrusted manuscript text. Built on WebMCP. Static site, vanilla ES modules, no bundler, no backend.",
   "license": "Apache-2.0",
   "author": "Eric Tetzlaff",
-  "homepage": "[FILL: deployed production URL]",
+  "homepage": "https://referee-psi.vercel.app",
   "repository": {
     "type": "git",
-    "url": "[FILL: repo URL]"
+    "url": "git+https://github.com/emtcmca/referee.git"
   },
   "bugs": {
-    "url": "[FILL: repo URL]/issues"
+    "url": "https://github.com/emtcmca/referee/issues"
   },
   "keywords": [
     "webmcp",
@@ -28,6 +28,7 @@
     "check": "node scripts/check-blinding.mjs",
     "selftest": "node scripts/selftest-blinding.mjs",
     "test": "node scripts/run-tests.mjs",
-    "acceptance": "node scripts/check-acceptance.mjs"
+    "acceptance": "node scripts/check-acceptance.mjs",
+    "corpus": "node scripts/check-corpus.mjs"
   }
 }
